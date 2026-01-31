@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trade Checklist</title>
+<title>Trade OS</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111">
 
 <style>
 body {
@@ -45,23 +48,12 @@ header {
   padding: 16px;
 }
 
-.section {
-  display: none;
-}
+.section { display: none; }
+.section.active { display: block; }
 
-.section.active {
-  display: block;
-}
+h2 { font-size: 18px; margin-top: 24px; }
 
-h2 {
-  font-size: 18px;
-  margin-top: 24px;
-}
-
-label {
-  display: block;
-  margin: 8px 0;
-}
+label { display: block; margin: 8px 0; }
 
 button {
   margin-top: 20px;
@@ -74,158 +66,158 @@ button {
   border-radius: 8px;
 }
 
-.log-item {
+button:disabled {
+  background: #aaa;
+}
+
+.card {
   background: #fff;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px;
   border-radius: 8px;
+  margin-bottom: 10px;
   font-size: 14px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
 }
 </style>
 </head>
 
 <body>
 
-<header>トレード管理</header>
+<header>Trade OS</header>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('check')">チェックシート</div>
-  <div class="tab" onclick="switchTab('log')">検証記録</div>
+  <div class="tab active" onclick="switchTab('check')">チェック</div>
+  <div class="tab" onclick="switchTab('log')">記録</div>
+  <div class="tab" onclick="switchTab('stats')">統計</div>
 </div>
 
 <div class="container">
 
-<!-- チェックシート -->
+<!-- チェック -->
 <div id="check" class="section active">
+  <h2>1時間足</h2>
+  <label><input type="checkbox" class="check"> 初動が出ている</label>
+  <label><input type="checkbox" class="check"> 伸びきっていない</label>
+  <label><input type="checkbox" class="check"> MA乖離なし</label>
+  <label><input type="checkbox" class="check"> 高値安値NG</label>
+  <label><input type="checkbox" class="check"> 抵抗帯ど真ん中NG</label>
 
-<h2>① 1時間足</h2>
-<label><input type="checkbox"> 初動が出ている</label>
-<label><input type="checkbox"> 伸びきっていない</label>
-<label><input type="checkbox"> MA乖離していない</label>
-<label><input type="checkbox"> 高値・安値掴みでない</label>
-<label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
+  <h2>4時間足</h2>
+  <label><input type="checkbox" class="check"> 方向あり</label>
+  <label><input type="checkbox" class="check"> 波の端でない</label>
+  <label><input type="checkbox" class="check"> 余力あり</label>
+  <label><input type="checkbox" class="check"> ヒゲ否定なし</label>
 
-<h2>② 4時間足</h2>
-<label><input type="checkbox"> 明確な方向がある</label>
-<label><input type="checkbox"> 波の頂点・底ではない</label>
-<label><input type="checkbox"> TR的に余力あり</label>
-<label><input type="checkbox"> 強いヒゲ否定なし</label>
-
-<h2>③ 判断</h2>
-<label><input type="radio" name="decision"> エントリーOK</label>
-<label><input type="radio" name="decision"> 見送り</label>
-
+  <h2>判断</h2>
+  <label><input type="radio" name="decision" value="entry"> エントリー</label>
+  <label><input type="radio" name="decision" value="skip"> 見送り</label>
 </div>
 
-<!-- 検証記録 -->
+<!-- 記録 -->
 <div id="log" class="section">
+  <h2>トレード記録（pips）</h2>
 
-<h2>検証記録</h2>
+  <label>結果
+    <select id="result">
+      <option value="win">勝ち</option>
+      <option value="loss">負け</option>
+    </select>
+  </label>
 
-<label>
-種別：
-<select id="type">
-  <option>エントリー</option>
-  <option>見送り</option>
-</select>
-</label>
+  <label>pips
+    <input id="pips" type="number">
+  </label>
 
-<label>
-結果：
-<select id="result">
-  <option>勝ち</option>
-  <option>負け</option>
-</select>
-</label>
+  <label>執行足
+    <select id="tf">
+      <option>15分</option>
+      <option>1時間</option>
+    </select>
+  </label>
 
-<label>
-執行足：
-<select id="timeframe">
-  <option>15分</option>
-  <option>1時間</option>
-</select>
-</label>
+  <h2>ミス / 見送り理由</h2>
+  <label><input type="checkbox" class="reason"> 初動でない</label>
+  <label><input type="checkbox" class="reason"> 伸びきり</label>
+  <label><input type="checkbox" class="reason"> MA乖離</label>
+  <label><input type="checkbox" class="reason"> レンジ</label>
+  <label><input type="checkbox" class="reason"> 抵抗帯</label>
+  <label><input type="checkbox" class="reason"> 感情</label>
 
-<label>
-ロット：
-<input id="lot" type="number" step="0.01">
-</label>
-
-<label>
-損益金額：
-<input id="pnl" type="number">
-</label>
-
-<h2>ミス・見送り理由</h2>
-<label><input type="checkbox"> 初動でない</label>
-<label><input type="checkbox"> 伸びきった足</label>
-<label><input type="checkbox"> MA乖離</label>
-<label><input type="checkbox"> レンジ</label>
-<label><input type="checkbox"> 抵抗帯真正面</label>
-<label><input type="checkbox"> 感情トレード</label>
-
-<button id="saveTrade">記録する</button>
-
-<h2>記録一覧</h2>
-<div id="logList"></div>
-
+  <button id="save" disabled>記録する</button>
 </div>
+
+<!-- 統計 -->
+<div id="stats" class="section">
+  <h2>月次レビュー</h2>
+  <div id="statsArea"></div>
+</div>
+
 </div>
 
 <script>
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-  if (tab === 'check') {
-    document.querySelectorAll('.tab')[0].classList.add('active');
-    document.getElementById('check').classList.add('active');
-  } else {
-    document.querySelectorAll('.tab')[1].classList.add('active');
-    document.getElementById('log').classList.add('active');
-  }
+// ---------- Tab ----------
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`.tab[onclick*="${id}"]`).classList.add('active');
 }
 
-function renderLogs() {
-  const list = document.getElementById('logList');
-  const data = JSON.parse(localStorage.getItem('tradeLogs') || '[]');
-  list.innerHTML = '';
-
-  data.slice().reverse().forEach(log => {
-    const div = document.createElement('div');
-    div.className = 'log-item';
-    div.innerHTML = `
-      <strong>${log.date}</strong><br>
-      ${log.type}｜${log.result}｜${log.timeframe}<br>
-      Lot:${log.lot} ｜ PnL:${log.pnl}<br>
-      ${log.reasons.join(' / ')}
-    `;
-    list.appendChild(div);
+// ---------- ロック ----------
+document.querySelectorAll('.check, input[name="decision"]').forEach(el=>{
+  el.addEventListener('change', ()=>{
+    const checks = document.querySelectorAll('.check:checked').length;
+    const decision = document.querySelector('input[name="decision"]:checked');
+    document.getElementById('save').disabled = !(checks === 9 && decision);
   });
-}
-
-document.getElementById('saveTrade').addEventListener('click', function () {
-  const record = {
-    date: new Date().toISOString().slice(0,10),
-    type: document.getElementById('type').value,
-    result: document.getElementById('result').value,
-    timeframe: document.getElementById('timeframe').value,
-    lot: document.getElementById('lot').value,
-    pnl: document.getElementById('pnl').value,
-    reasons: Array.from(
-      document.querySelectorAll('#log input[type="checkbox"]:checked')
-    ).map(cb => cb.parentElement.innerText.trim())
-  };
-
-  const data = JSON.parse(localStorage.getItem('tradeLogs') || '[]');
-  data.push(record);
-  localStorage.setItem('tradeLogs', JSON.stringify(data));
-
-  renderLogs();
-  alert('保存しました');
 });
 
-renderLogs();
+// ---------- 保存 ----------
+document.getElementById('save').onclick = ()=>{
+  const record = {
+    date: new Date().toISOString().slice(0,7),
+    result: document.getElementById('result').value,
+    pips: Number(document.getElementById('pips').value),
+    tf: document.getElementById('tf').value,
+    reasons: [...document.querySelectorAll('.reason:checked')].map(r=>r.parentText)
+  };
+  const data = JSON.parse(localStorage.getItem('logs')||'[]');
+  data.push(record);
+  localStorage.setItem('logs', JSON.stringify(data));
+  alert('保存しました');
+  renderStats();
+};
+
+// ---------- 統計 ----------
+function renderStats(){
+  const data = JSON.parse(localStorage.getItem('logs')||'[]');
+  const wins = data.filter(d=>d.result==='win');
+  const losses = data.filter(d=>d.result==='loss');
+  const winRate = data.length ? (wins.length/data.length*100).toFixed(1) : 0;
+  const avgWin = wins.reduce((a,b)=>a+b.pips,0)/(wins.length||1);
+  const avgLoss = Math.abs(losses.reduce((a,b)=>a+b.pips,0)/(losses.length||1));
+  const E = (winRate/100)*avgWin - ((100-winRate)/100)*avgLoss;
+
+  document.getElementById('statsArea').innerHTML = `
+    <div class="card">
+      <div class="stat"><span>勝率</span><span>${winRate}%</span></div>
+      <div class="stat"><span>平均勝ち</span><span>${avgWin.toFixed(1)} pips</span></div>
+      <div class="stat"><span>平均負け</span><span>${avgLoss.toFixed(1)} pips</span></div>
+      <div class="stat"><span>期待値E</span><span>${E.toFixed(2)}</span></div>
+    </div>
+  `;
+}
+renderStats();
+
+// ---------- PWA ----------
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 
 </body>
