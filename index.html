@@ -4,24 +4,92 @@
   <meta charset="UTF-8">
   <title>FX トレードチェック</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f7f7f7;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 22px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 24px;
+    }
+    .box {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin: 6px 0;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #007aff;
+      color: white;
+      margin-top: 20px;
+    }
+    .ng {
+      color: red;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>トレードチェックシート</h1>
 
-  <label>
-    <input type="checkbox"> 1時間足 初動が出ている
-  </label><br>
+<h1>トレード前チェック</h1>
 
-  <label>
-    <input type="checkbox"> 4時間足 余力あり
-  </label><br>
+<div class="box">
+  <h2>① 1時間足（主導）</h2>
+  <label><input type="checkbox"> 初動が出ている</label>
+  <label><input type="checkbox"> 伸びきっていない</label>
+  <label><input type="checkbox"> MA乖離が大きすぎない</label>
+  <label><input type="checkbox"> 高値・安値掴みではない</label>
+  <label><input type="checkbox"> 固い抵抗帯のど真ん中ではない</label>
+</div>
 
-  <label>
-    <input type="checkbox"> MA乖離なし
-  </label><br>
+<div class="box">
+  <h2>② 4時間足（確認）</h2>
+  <label><input type="checkbox"> 明確な方向がある</label>
+  <label><input type="checkbox"> 波の頂点・底ではない</label>
+  <label><input type="checkbox"> TR的に余力がある</label>
+  <label><input type="checkbox"> ヒゲで否定されていない</label>
+</div>
 
-  <button onclick="alert('チェック完了')">
-    チェックアウト
-  </button>
+<div class="box">
+  <h2>③ 執行足</h2>
+  <label><input type="checkbox"> 初動 or 再初動</label>
+  <label><input type="checkbox"> 伸びきった足ではない</label>
+  <label><input type="checkbox"> 戻しに狩られにくい</label>
+</div>
+
+<div class="ng" id="ngText">
+  ❌ 条件未達。今回は見送り。
+</div>
+
+<button onclick="checkTrade()">チェックアウト</button>
+
+<script>
+function checkTrade() {
+  const checks = document.querySelectorAll('input[type="checkbox"]');
+  for (let c of checks) {
+    if (!c.checked) {
+      document.getElementById('ngText').style.display = 'block';
+      return;
+    }
+  }
+  alert('✅ エントリーOK');
+}
+</script>
+
 </body>
 </html>
