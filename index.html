@@ -5,23 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trade OS</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111">
-
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
-  background: #f5f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f2f2f7;
   color: #111;
 }
 
 header {
-  background: #111;
+  background: #000;
   color: #fff;
-  padding: 12px;
+  padding: 14px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .tabs {
@@ -34,54 +31,86 @@ header {
   flex: 1;
   padding: 12px;
   text-align: center;
+  color: #888;
+  font-weight: 500;
   cursor: pointer;
-  font-weight: 600;
-  color: #666;
 }
 
 .tab.active {
-  color: #111;
-  border-bottom: 3px solid #007aff;
+  color: #007AFF;
+  border-bottom: 3px solid #007AFF;
 }
 
-.container {
-  padding: 16px;
+.section {
+  display: none;
+  padding: 20px;
 }
 
-.section { display: none; }
-.section.active { display: block; }
+.section.active {
+  display: block;
+}
 
-h2 { font-size: 18px; margin-top: 24px; }
+h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
 
-label { display: block; margin: 8px 0; }
+label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 15px;
+}
 
-button {
-  margin-top: 20px;
+input, select {
   width: 100%;
   padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
   font-size: 16px;
-  background: #007aff;
-  color: #fff;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  background: #007AFF;
+  color: #fff;
+  margin-top: 24px;
 }
 
-button:disabled {
-  background: #aaa;
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  gap: 8px;
 }
 
-.card {
+.day {
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  text-align: right;
+}
+
+.day.win { background:#34C759; color:#fff; }
+.day.lose { background:#FF3B30; color:#fff; }
+
+.log-item {
   background: #fff;
   padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
   font-size: 14px;
 }
 
-.stat {
-  display: flex;
-  justify-content: space-between;
-  margin: 4px 0;
+.delete {
+  color: #FF3B30;
+  font-size: 12px;
+  text-align: right;
+  margin-top: 6px;
 }
 </style>
 </head>
@@ -91,133 +120,135 @@ button:disabled {
 <header>Trade OS</header>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('check')">チェック</div>
-  <div class="tab" onclick="switchTab('log')">記録</div>
-  <div class="tab" onclick="switchTab('stats')">統計</div>
+  <div class="tab active" onclick="switchTab(0)">チェック</div>
+  <div class="tab" onclick="switchTab(1)">記録</div>
+  <div class="tab" onclick="switchTab(2)">カレンダー</div>
 </div>
 
-<div class="container">
-
 <!-- チェック -->
-<div id="check" class="section active">
-  <h2>1時間足</h2>
-  <label><input type="checkbox" class="check"> 初動が出ている</label>
-  <label><input type="checkbox" class="check"> 伸びきっていない</label>
-  <label><input type="checkbox" class="check"> MA乖離なし</label>
-  <label><input type="checkbox" class="check"> 高値安値NG</label>
-  <label><input type="checkbox" class="check"> 抵抗帯ど真ん中NG</label>
+<div class="section active">
+<h2>執行前チェック</h2>
+<label><input type="checkbox"> 4H方向一致</label>
+<label><input type="checkbox"> 1H初動</label>
+<label><input type="checkbox"> 執行足（15分）勢いあり</label>
+<label><input type="checkbox"> MA乖離なし</label>
+<label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
 
-  <h2>4時間足</h2>
-  <label><input type="checkbox" class="check"> 方向あり</label>
-  <label><input type="checkbox" class="check"> 波の端でない</label>
-  <label><input type="checkbox" class="check"> 余力あり</label>
-  <label><input type="checkbox" class="check"> ヒゲ否定なし</label>
-
-  <h2>判断</h2>
-  <label><input type="radio" name="decision" value="entry"> エントリー</label>
-  <label><input type="radio" name="decision" value="skip"> 見送り</label>
+<h2>見送り理由</h2>
+<label><input type="checkbox"> 初動でない</label>
+<label><input type="checkbox"> 伸びきり</label>
+<label><input type="checkbox"> レンジ</label>
+<label><input type="checkbox"> 感情</label>
 </div>
 
 <!-- 記録 -->
-<div id="log" class="section">
-  <h2>トレード記録（pips）</h2>
+<div class="section">
+<h2>トレード記録（pips）</h2>
 
-  <label>結果
-    <select id="result">
-      <option value="win">勝ち</option>
-      <option value="loss">負け</option>
-    </select>
-  </label>
+<label>結果
+<select id="result">
+  <option>勝ち</option>
+  <option>負け</option>
+</select></label>
 
-  <label>pips
-    <input id="pips" type="number">
-  </label>
+<label>pips
+<input id="pips" type="number" step="0.1"></label>
 
-  <label>執行足
-    <select id="tf">
-      <option>15分</option>
-      <option>1時間</option>
-    </select>
-  </label>
+<label>執行足
+<select id="tf">
+  <option>15分</option>
+  <option>1時間</option>
+</select></label>
 
-  <h2>ミス / 見送り理由</h2>
-  <label><input type="checkbox" class="reason"> 初動でない</label>
-  <label><input type="checkbox" class="reason"> 伸びきり</label>
-  <label><input type="checkbox" class="reason"> MA乖離</label>
-  <label><input type="checkbox" class="reason"> レンジ</label>
-  <label><input type="checkbox" class="reason"> 抵抗帯</label>
-  <label><input type="checkbox" class="reason"> 感情</label>
+<button onclick="save()">記録する</button>
 
-  <button id="save" disabled>記録する</button>
+<h2>当日内訳</h2>
+<div id="detail"></div>
 </div>
 
-<!-- 統計 -->
-<div id="stats" class="section">
-  <h2>月次レビュー</h2>
-  <div id="statsArea"></div>
-</div>
-
+<!-- カレンダー -->
+<div class="section">
+<h2>月次カレンダー</h2>
+<div class="calendar" id="calendar"></div>
 </div>
 
 <script>
-// ---------- Tab ----------
-function switchTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelector(`.tab[onclick*="${id}"]`).classList.add('active');
+let selectedDate=null;
+
+function switchTab(i){
+  document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('active',n===i));
+  document.querySelectorAll('.section').forEach((s,n)=>s.classList.toggle('active',n===i));
 }
 
-// ---------- ロック ----------
-document.querySelectorAll('.check, input[name="decision"]').forEach(el=>{
-  el.addEventListener('change', ()=>{
-    const checks = document.querySelectorAll('.check:checked').length;
-    const decision = document.querySelector('input[name="decision"]:checked');
-    document.getElementById('save').disabled = !(checks === 9 && decision);
+function load(){ return JSON.parse(localStorage.getItem('logs')||'[]'); }
+
+function save(){
+  const logs=load();
+  logs.push({
+    date:new Date().toISOString().slice(0,10),
+    result:result.value,
+    pips:Number(pips.value),
+    tf:tf.value
   });
-});
-
-// ---------- 保存 ----------
-document.getElementById('save').onclick = ()=>{
-  const record = {
-    date: new Date().toISOString().slice(0,7),
-    result: document.getElementById('result').value,
-    pips: Number(document.getElementById('pips').value),
-    tf: document.getElementById('tf').value,
-    reasons: [...document.querySelectorAll('.reason:checked')].map(r=>r.parentText)
-  };
-  const data = JSON.parse(localStorage.getItem('logs')||'[]');
-  data.push(record);
-  localStorage.setItem('logs', JSON.stringify(data));
+  localStorage.setItem('logs',JSON.stringify(logs));
+  renderCalendar();
   alert('保存しました');
-  renderStats();
-};
-
-// ---------- 統計 ----------
-function renderStats(){
-  const data = JSON.parse(localStorage.getItem('logs')||'[]');
-  const wins = data.filter(d=>d.result==='win');
-  const losses = data.filter(d=>d.result==='loss');
-  const winRate = data.length ? (wins.length/data.length*100).toFixed(1) : 0;
-  const avgWin = wins.reduce((a,b)=>a+b.pips,0)/(wins.length||1);
-  const avgLoss = Math.abs(losses.reduce((a,b)=>a+b.pips,0)/(losses.length||1));
-  const E = (winRate/100)*avgWin - ((100-winRate)/100)*avgLoss;
-
-  document.getElementById('statsArea').innerHTML = `
-    <div class="card">
-      <div class="stat"><span>勝率</span><span>${winRate}%</span></div>
-      <div class="stat"><span>平均勝ち</span><span>${avgWin.toFixed(1)} pips</span></div>
-      <div class="stat"><span>平均負け</span><span>${avgLoss.toFixed(1)} pips</span></div>
-      <div class="stat"><span>期待値E</span><span>${E.toFixed(2)}</span></div>
-    </div>
-  `;
 }
-renderStats();
 
-// ---------- PWA ----------
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
+function renderCalendar(){
+  const cal=document.getElementById('calendar');
+  cal.innerHTML='';
+  const logs=load();
+  const map={};
+  logs.forEach(l=>{
+    map[l.date]=map[l.date]||[];
+    map[l.date].push(l);
+  });
+
+  for(let d=1;d<=31;d++){
+    const date=new Date();
+    const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const div=document.createElement('div');
+    div.className='day';
+    div.textContent=d;
+
+    if(map[key]){
+      const sum=map[key].reduce((a,b)=>a+b.pips,0);
+      div.classList.add(sum>=0?'win':'lose');
+      div.onclick=()=>showDetail(key);
+    }
+    cal.appendChild(div);
+  }
 }
+
+function showDetail(date){
+  selectedDate=date;
+  const box=document.getElementById('detail');
+  box.innerHTML='';
+  load().filter(l=>l.date===date).forEach((l,i)=>{
+    const div=document.createElement('div');
+    div.className='log-item';
+    div.innerHTML=`
+      ${l.result}｜${l.pips}pips｜${l.tf}
+      <div class="delete" onclick="del(${i})">削除</div>
+    `;
+    box.appendChild(div);
+  });
+}
+
+function del(i){
+  const logs=load();
+  let out=[],c=0;
+  logs.forEach(l=>{
+    if(l.date===selectedDate){ if(c++!==i) out.push(l); }
+    else out.push(l);
+  });
+  localStorage.setItem('logs',JSON.stringify(out));
+  showDetail(selectedDate);
+  renderCalendar();
+}
+
+renderCalendar();
 </script>
 
 </body>
