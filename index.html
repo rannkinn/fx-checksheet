@@ -1,93 +1,181 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>FX トレードチェック</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f7f7f7;
-      padding: 16px;
-    }
-    h1 {
-      font-size: 22px;
-    }
-    h2 {
-      font-size: 18px;
-      margin-top: 24px;
-    }
-    .box {
-      background: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-    label {
-      display: block;
-      margin: 6px 0;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: #007aff;
-      color: white;
-      margin-top: 20px;
-    }
-    .ng {
-      color: red;
-      font-weight: bold;
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Checklist</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f5f5f7;
+  color: #111;
+}
+
+header {
+  background: #111;
+  color: #fff;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+}
+
+.tab.active {
+  color: #111;
+  border-bottom: 3px solid #007aff;
+}
+
+.container {
+  padding: 16px;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+h2 {
+  font-size: 18px;
+  margin-top: 24px;
+}
+
+label {
+  display: block;
+  margin: 8px 0;
+}
+
+button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>トレード前チェック</h1>
+<header>
+  トレード管理
+</header>
 
-<div class="box">
-  <h2>① 1時間足（主導）</h2>
-  <label><input type="checkbox"> 初動が出ている</label>
-  <label><input type="checkbox"> 伸びきっていない</label>
-  <label><input type="checkbox"> MA乖離が大きすぎない</label>
-  <label><input type="checkbox"> 高値・安値掴みではない</label>
-  <label><input type="checkbox"> 固い抵抗帯のど真ん中ではない</label>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('check')">チェックシート</div>
+  <div class="tab" onclick="switchTab('log')">検証記録</div>
 </div>
 
-<div class="box">
-  <h2>② 4時間足（確認）</h2>
-  <label><input type="checkbox"> 明確な方向がある</label>
-  <label><input type="checkbox"> 波の頂点・底ではない</label>
-  <label><input type="checkbox"> TR的に余力がある</label>
-  <label><input type="checkbox"> ヒゲで否定されていない</label>
-</div>
+<div class="container">
 
-<div class="box">
-  <h2>③ 執行足</h2>
-  <label><input type="checkbox"> 初動 or 再初動</label>
-  <label><input type="checkbox"> 伸びきった足ではない</label>
-  <label><input type="checkbox"> 戻しに狩られにくい</label>
-</div>
+  <!-- チェックシート -->
+  <div id="check" class="section active">
 
-<div class="ng" id="ngText">
-  ❌ 条件未達。今回は見送り。
-</div>
+    <h2>① 1時間足</h2>
+    <label><input type="checkbox"> 初動が出ている</label>
+    <label><input type="checkbox"> 伸びきっていない</label>
+    <label><input type="checkbox"> MA乖離していない</label>
+    <label><input type="checkbox"> 高値・安値掴みでない</label>
+    <label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
 
-<button onclick="checkTrade()">チェックアウト</button>
+    <h2>② 4時間足</h2>
+    <label><input type="checkbox"> 明確な方向がある</label>
+    <label><input type="checkbox"> 波の頂点・底ではない</label>
+    <label><input type="checkbox"> TR的に余力あり</label>
+    <label><input type="checkbox"> 強いヒゲ否定なし</label>
+
+    <h2>③ 判断</h2>
+    <label><input type="radio" name="decision"> エントリーOK</label>
+    <label><input type="radio" name="decision"> 見送り</label>
+
+  </div>
+
+  <!-- 検証記録 -->
+  <div id="log" class="section">
+
+    <h2>検証記録</h2>
+
+    <label>
+      種別：
+      <select>
+        <option>エントリー</option>
+        <option>見送り</option>
+      </select>
+    </label>
+
+    <label>
+      結果：
+      <select>
+        <option>勝ち</option>
+        <option>負け</option>
+      </select>
+    </label>
+
+    <label>
+      執行足：
+      <select>
+        <option>15分</option>
+        <option>1時間</option>
+      </select>
+    </label>
+
+    <label>
+      ロット：
+      <input type="number" step="0.01">
+    </label>
+
+    <label>
+      損益金額：
+      <input type="number">
+    </label>
+
+    <h2>ミス・見送り理由</h2>
+    <label><input type="checkbox"> 初動でない</label>
+    <label><input type="checkbox"> 伸びきった足</label>
+    <label><input type="checkbox"> MA乖離</label>
+    <label><input type="checkbox"> レンジ</label>
+    <label><input type="checkbox"> 抵抗帯真正面</label>
+    <label><input type="checkbox"> 感情トレード</label>
+
+    <button>記録する（※まだ保存されません）</button>
+
+  </div>
+
+</div>
 
 <script>
-function checkTrade() {
-  const checks = document.querySelectorAll('input[type="checkbox"]');
-  for (let c of checks) {
-    if (!c.checked) {
-      document.getElementById('ngText').style.display = 'block';
-      return;
-    }
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+  if (tab === 'check') {
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    document.getElementById('check').classList.add('active');
+  } else {
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    document.getElementById('log').classList.add('active');
   }
-  alert('✅ エントリーOK');
 }
 </script>
 
