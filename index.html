@@ -73,14 +73,20 @@ button {
   border: none;
   border-radius: 8px;
 }
+
+.log-item {
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
 </style>
 </head>
 
 <body>
 
-<header>
-  トレード管理
-</header>
+<header>トレード管理</header>
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab('check')">チェックシート</div>
@@ -89,79 +95,81 @@ button {
 
 <div class="container">
 
-  <!-- チェックシート -->
-  <div id="check" class="section active">
+<!-- チェックシート -->
+<div id="check" class="section active">
 
-    <h2>① 1時間足</h2>
-    <label><input type="checkbox"> 初動が出ている</label>
-    <label><input type="checkbox"> 伸びきっていない</label>
-    <label><input type="checkbox"> MA乖離していない</label>
-    <label><input type="checkbox"> 高値・安値掴みでない</label>
-    <label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
+<h2>① 1時間足</h2>
+<label><input type="checkbox"> 初動が出ている</label>
+<label><input type="checkbox"> 伸びきっていない</label>
+<label><input type="checkbox"> MA乖離していない</label>
+<label><input type="checkbox"> 高値・安値掴みでない</label>
+<label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
 
-    <h2>② 4時間足</h2>
-    <label><input type="checkbox"> 明確な方向がある</label>
-    <label><input type="checkbox"> 波の頂点・底ではない</label>
-    <label><input type="checkbox"> TR的に余力あり</label>
-    <label><input type="checkbox"> 強いヒゲ否定なし</label>
+<h2>② 4時間足</h2>
+<label><input type="checkbox"> 明確な方向がある</label>
+<label><input type="checkbox"> 波の頂点・底ではない</label>
+<label><input type="checkbox"> TR的に余力あり</label>
+<label><input type="checkbox"> 強いヒゲ否定なし</label>
 
-    <h2>③ 判断</h2>
-    <label><input type="radio" name="decision"> エントリーOK</label>
-    <label><input type="radio" name="decision"> 見送り</label>
+<h2>③ 判断</h2>
+<label><input type="radio" name="decision"> エントリーOK</label>
+<label><input type="radio" name="decision"> 見送り</label>
 
-  </div>
+</div>
 
-  <!-- 検証記録 -->
-  <div id="log" class="section">
+<!-- 検証記録 -->
+<div id="log" class="section">
 
-    <h2>検証記録</h2>
+<h2>検証記録</h2>
 
-  <label>
-  種別：
-  <select id="type">
-    <option>エントリー</option>
-    <option>見送り</option>
-  </select>
+<label>
+種別：
+<select id="type">
+  <option>エントリー</option>
+  <option>見送り</option>
+</select>
 </label>
 
 <label>
-  結果：
-  <select id="result">
-    <option>勝ち</option>
-    <option>負け</option>
-  </select>
+結果：
+<select id="result">
+  <option>勝ち</option>
+  <option>負け</option>
+</select>
 </label>
 
 <label>
-  執行足：
-  <select id="timeframe">
-    <option>15分</option>
-    <option>1時間</option>
-  </select>
+執行足：
+<select id="timeframe">
+  <option>15分</option>
+  <option>1時間</option>
+</select>
 </label>
 
 <label>
-  ロット：
-  <input id="lot" type="number" step="0.01">
+ロット：
+<input id="lot" type="number" step="0.01">
 </label>
 
 <label>
-  損益金額：
-  <input id="pnl" type="number">
+損益金額：
+<input id="pnl" type="number">
 </label>
 
-    <h2>ミス・見送り理由</h2>
-    <label><input type="checkbox"> 初動でない</label>
-    <label><input type="checkbox"> 伸びきった足</label>
-    <label><input type="checkbox"> MA乖離</label>
-    <label><input type="checkbox"> レンジ</label>
-    <label><input type="checkbox"> 抵抗帯真正面</label>
-    <label><input type="checkbox"> 感情トレード</label>
+<h2>ミス・見送り理由</h2>
+<label><input type="checkbox"> 初動でない</label>
+<label><input type="checkbox"> 伸びきった足</label>
+<label><input type="checkbox"> MA乖離</label>
+<label><input type="checkbox"> レンジ</label>
+<label><input type="checkbox"> 抵抗帯真正面</label>
+<label><input type="checkbox"> 感情トレード</label>
 
-    <button id="saveTrade">記録する</button>
+<button id="saveTrade">記録する</button>
 
-  </div>
+<h2>記録一覧</h2>
+<div id="logList"></div>
 
+</div>
 </div>
 
 <script>
@@ -178,8 +186,25 @@ function switchTab(tab) {
   }
 }
 
-document.getElementById('saveTrade').addEventListener('click', function () {
+function renderLogs() {
+  const list = document.getElementById('logList');
+  const data = JSON.parse(localStorage.getItem('tradeLogs') || '[]');
+  list.innerHTML = '';
 
+  data.slice().reverse().forEach(log => {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerHTML = `
+      <strong>${log.date}</strong><br>
+      ${log.type}｜${log.result}｜${log.timeframe}<br>
+      Lot:${log.lot} ｜ PnL:${log.pnl}<br>
+      ${log.reasons.join(' / ')}
+    `;
+    list.appendChild(div);
+  });
+}
+
+document.getElementById('saveTrade').addEventListener('click', function () {
   const record = {
     date: new Date().toISOString().slice(0,10),
     type: document.getElementById('type').value,
@@ -196,11 +221,12 @@ document.getElementById('saveTrade').addEventListener('click', function () {
   data.push(record);
   localStorage.setItem('tradeLogs', JSON.stringify(data));
 
+  renderLogs();
   alert('保存しました');
 });
+
+renderLogs();
 </script>
-
-
 
 </body>
 </html>
