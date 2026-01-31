@@ -158,7 +158,7 @@ button {
     <label><input type="checkbox"> 抵抗帯真正面</label>
     <label><input type="checkbox"> 感情トレード</label>
 
-    <button>記録する（※まだ保存されません）</button>
+    <button id="saveTrade">記録する</button>
 
   </div>
 
@@ -177,7 +177,29 @@ function switchTab(tab) {
     document.getElementById('log').classList.add('active');
   }
 }
+
+// 保存処理
+document.getElementById('saveTrade').addEventListener('click', function () {
+
+  const record = {
+    date: new Date().toISOString().slice(0,10),
+    type: document.querySelector('#log select:nth-of-type(1)').value,
+    result: document.querySelector('#log select:nth-of-type(2)').value,
+    timeframe: document.querySelector('#log select:nth-of-type(3)').value,
+    lot: document.querySelector('#log input[type="number"]').value,
+    pnl: document.querySelectorAll('#log input[type="number"]')[1].value,
+    reasons: Array.from(document.querySelectorAll('#log input[type="checkbox"]:checked'))
+                  .map(cb => cb.parentElement.innerText.trim())
+  };
+
+  const data = JSON.parse(localStorage.getItem('tradeLogs') || '[]');
+  data.push(record);
+  localStorage.setItem('tradeLogs', JSON.stringify(data));
+
+  alert('保存しました');
+});
 </script>
+
 
 </body>
 </html>
