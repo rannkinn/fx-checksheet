@@ -15,6 +15,7 @@
   --win:#4caf50;
   --lose:#f44336;
 }
+
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -22,12 +23,14 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
 header{
   padding:16px;
   text-align:center;
   font-size:20px;
   font-weight:600;
 }
+
 nav{
   display:flex;
   gap:8px;
@@ -35,6 +38,7 @@ nav{
   justify-content:center;
   flex-wrap:wrap;
 }
+
 nav button{
   background:var(--card);
   color:var(--text);
@@ -42,9 +46,17 @@ nav button{
   padding:8px 14px;
   border-radius:10px;
   cursor:pointer;
+  transition:.2s;
+  flex:1 1 auto;
+  min-width:80px;
 }
-nav button.active{background:var(--accent)}
+nav button.active{
+  background:var(--accent);
+  color:white;
+}
+
 main{padding:16px}
+
 .card{
   background:var(--card);
   border-radius:14px;
@@ -52,8 +64,19 @@ main{padding:16px}
   margin-bottom:16px;
   box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
+
 h3,h4{margin:8px 0}
-label{display:block;margin:6px 0;font-size:14px}
+
+/* チェックボックス横並び */
+label{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:6px 0;
+  font-size:14px;
+  flex-wrap:wrap;
+}
+
 input,select,textarea{
   width:100%;
   padding:8px;
@@ -62,6 +85,7 @@ input,select,textarea{
   border:none;
 }
 textarea{height:60px}
+
 button.primary{
   width:100%;
   padding:10px;
@@ -71,6 +95,7 @@ button.primary{
   color:white;
   font-size:16px;
 }
+
 .result-box{
   margin:12px 0;
   padding:10px;
@@ -78,10 +103,10 @@ button.primary{
   background:rgba(255,255,255,.05);
   font-weight:600;
 }
+
 .allow{color:var(--win)}
 .deny{color:var(--lose)}
 
-<!-- STEP 3 ADD -->
 #calendarGrid div{
   transition:.2s;
 }
@@ -92,6 +117,26 @@ button.primary{
   color:var(--muted);
 }
 
+/* レスポンシブ対応 */
+@media (max-width:600px){
+  nav{
+    flex-direction:column;
+  }
+  nav button{
+    width:100%;
+  }
+  #calendarGrid{
+    grid-template-columns:repeat(2,1fr);
+    gap:4px;
+  }
+}
+
+@media (min-width:601px) and (max-width:900px){
+  #calendarGrid{
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+  }
+}
 </style>
 </head>
 
@@ -107,7 +152,6 @@ button.primary{
 <main>
 
 <section id="check" class="card">
-
 <h3>ステップ①【1時間足】（全てYES）</h3>
 <label><input type="checkbox" class="h1"> 初動が出ている</label>
 <label><input type="checkbox" class="h1"> 初動で伸びきっていない</label>
@@ -148,36 +192,37 @@ button.primary{
 <textarea id="comment" placeholder="コメント"></textarea>
 
 <button class="primary" onclick="saveTrade()">保存</button>
-
 </section>
 
 <section id="calendar" class="card" style="display:none">
-  <!-- STEP 1 ADD : Calendar Header -->
-<div id="calendarHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-  <button onclick="changeMonth(-1)">←</button>
-  <div id="currentMonth"></div>
-  <button onclick="changeMonth(1)">→</button>
-</div>
+  <div id="calendarHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <button onclick="changeMonth(-1)">←</button>
+    <div id="currentMonth"></div>
+    <button onclick="changeMonth(1)">→</button>
+  </div>
 
-<!-- STEP 1 ADD : Month Total -->
-<div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
-
-<!-- STEP 1 ADD : Calendar Grid -->
-<div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
-
-<!-- STEP 1 ADD : Day Detail -->
-<div id="dayDetail" style="margin-top:14px"></div>
+  <div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
+  <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+  <div id="dayDetail" style="margin-top:14px"></div>
 </section>
 
-  <section id="stats" class="card" style="display:none">
-    <!-- STEP 2 ADD : Stats Content -->
-<div id="statsContent"></div>
-  </section>
+<section id="stats" class="card" style="display:none">
+  <div id="statsContent"></div>
+</section>
 
 </main>
 
 <script>
 const trades=JSON.parse(localStorage.getItem('trades')||'[]');
+
+const date=document.getElementById('date');
+const time=document.getElementById('time');
+const side=document.getElementById('side');
+const result=document.getElementById('result');
+const lotEl=document.getElementById('lot');
+const amountEl=document.getElementById('amount');
+const pipsEl=document.getElementById('pips');
+const comment=document.getElementById('comment');
 
 document.querySelectorAll('input').forEach(i=>i.onchange=judge);
 
@@ -215,23 +260,12 @@ function saveTrade(){
   alert('保存しました');
 }
 
-const date=document.getElementById('date');
-const time=document.getElementById('time');
-const side=document.getElementById('side');
-const result=document.getElementById('result');
-const lotEl=document.getElementById('lot');
-const amountEl=document.getElementById('amount');
-const pipsEl=document.getElementById('pips');
-const comment=document.getElementById('comment');
-
-<!-- STEP 1 ADD : Calendar Logic -->
+// --- カレンダー ---
 let current = new Date();
-
 function changeMonth(diff){
   current.setMonth(current.getMonth()+diff);
   renderCalendar();
 }
-
 function renderCalendar(){
   const y=current.getFullYear();
   const m=current.getMonth();
@@ -283,23 +317,33 @@ function deleteTrade(idx,date){
   showDayDetail(date);
 }
 
-document.getElementById('tab-calendar').onclick=()=>{
-  document.getElementById('check').style.display='none';
-  document.getElementById('stats').style.display='none';
-  document.getElementById('calendar').style.display='block';
-  renderCalendar();
-};
-
-
-<!-- STEP 2 ADD : Stats Logic -->
-document.getElementById('tab-stats').onclick=()=>{
+// --- タブ切替 ---
+function switchTab(tabId){
   document.getElementById('check').style.display='none';
   document.getElementById('calendar').style.display='none';
-  document.getElementById('stats').style.display='block';
-  renderStats();
-};
+  document.getElementById('stats').style.display='none';
 
+  document.getElementById(tabId).style.display='block';
+
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+
+  const btnMap={
+    'check':'tab-check',
+    'calendar':'tab-calendar',
+    'stats':'tab-stats'
+  };
+  document.getElementById(btnMap[tabId]).classList.add('active');
+
+  if(tabId==='calendar') renderCalendar();
+}
+
+document.getElementById('tab-check').onclick=()=>switchTab('check');
+document.getElementById('tab-calendar').onclick=()=>switchTab('calendar');
+document.getElementById('tab-stats').onclick=()=>switchTab('stats');
+
+// --- 集計 ---
 function renderStats(){
+  const statsContent=document.getElementById('statsContent');
   if(!trades.length){
     statsContent.innerHTML='データなし';
     return;
@@ -317,8 +361,7 @@ function renderStats(){
     <div>累計損益：${monthSum.toLocaleString()} 円</div>
   `;
 }
-
 </script>
+
 </body>
 </html>
-
