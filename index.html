@@ -80,6 +80,18 @@ button.primary{
 }
 .allow{color:var(--win)}
 .deny{color:var(--lose)}
+
+<!-- STEP 3 ADD -->
+#calendarGrid div{
+  transition:.2s;
+}
+#calendarGrid div:hover{
+  transform:scale(1.05);
+}
+#calendarGrid div div:last-child{
+  color:var(--muted);
+}
+
 </style>
 </head>
 
@@ -139,8 +151,28 @@ button.primary{
 
 </section>
 
-<section id="calendar" class="card" style="display:none"></section>
-<section id="stats" class="card" style="display:none"></section>
+<section id="calendar" class="card" style="display:none">
+  <!-- STEP 1 ADD : Calendar Header -->
+<div id="calendarHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+  <button onclick="changeMonth(-1)">←</button>
+  <div id="currentMonth"></div>
+  <button onclick="changeMonth(1)">→</button>
+</div>
+
+<!-- STEP 1 ADD : Month Total -->
+<div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
+
+<!-- STEP 1 ADD : Calendar Grid -->
+<div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+
+<!-- STEP 1 ADD : Day Detail -->
+<div id="dayDetail" style="margin-top:14px"></div>
+</section>
+
+  <section id="stats" class="card" style="display:none">
+    <!-- STEP 2 ADD : Stats Content -->
+<div id="statsContent"></div>
+  </section>
 
 </main>
 
@@ -191,6 +223,102 @@ const lotEl=document.getElementById('lot');
 const amountEl=document.getElementById('amount');
 const pipsEl=document.getElementById('pips');
 const comment=document.getElementById('comment');
+
+<!-- STEP 1 ADD : Calendar Logic -->
+let current = new Date();
+
+function changeMonth(diff){
+  current.setMonth(current.getMonth()+diff);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const y=current.getFullYear();
+  const m=current.getMonth();
+  document.getElementById('currentMonth').textContent=`${y}年 ${m+1}月`;
+
+  const grid=document.getElementById('calendarGrid');
+  grid.innerHTML='';
+  let monthSum=0;
+
+  const days=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=days;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTrades=trades.filter(t=>t.date===dateStr);
+    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
+    monthSum+=total;
+
+    const cell=document.createElement('div');
+    cell.style.padding='6px';
+    cell.style.borderRadius='8px';
+    cell.style.background='rgba(255,255,255,.05)';
+    cell.style.cursor='pointer';
+    cell.innerHTML=`<div>${d}</div><div style="font-size:12px">${total||''}</div>`;
+    cell.onclick=()=>showDayDetail(dateStr);
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('monthTotal').textContent=`月合計：${monthSum.toLocaleString()} 円`;
+}
+
+function showDayDetail(date){
+  const box=document.getElementById('dayDetail');
+  const list=trades.filter(t=>t.date===date);
+  if(!list.length){ box.innerHTML=''; return; }
+
+  box.innerHTML=`<h4>${date} 内訳</h4>`+
+    list.map((t,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>${t.time} ${t.side} ${t.amount}</span>
+        <button onclick="deleteTrade(${i},'${date}')">削除</button>
+      </div>
+    `).join('');
+}
+
+function deleteTrade(idx,date){
+  const i=trades.findIndex((t,n)=>t.date===date && n>=idx);
+  trades.splice(i,1);
+  localStorage.setItem('trades',JSON.stringify(trades));
+  renderCalendar();
+  showDayDetail(date);
+}
+
+document.getElementById('tab-calendar').onclick=()=>{
+  document.getElementById('check').style.display='none';
+  document.getElementById('stats').style.display='none';
+  document.getElementById('calendar').style.display='block';
+  renderCalendar();
+};
+
+
+<!-- STEP 2 ADD : Stats Logic -->
+document.getElementById('tab-stats').onclick=()=>{
+  document.getElementById('check').style.display='none';
+  document.getElementById('calendar').style.display='none';
+  document.getElementById('stats').style.display='block';
+  renderStats();
+};
+
+function renderStats(){
+  if(!trades.length){
+    statsContent.innerHTML='データなし';
+    return;
+  }
+  const wins=trades.filter(t=>t.result==='win').length;
+  const total=trades.length;
+  const winRate=((wins/total)*100).toFixed(1);
+  const avgPips=(trades.reduce((a,b)=>a+b.pips,0)/total).toFixed(1);
+  const monthSum=trades.reduce((a,b)=>a+b.amount,0);
+
+  statsContent.innerHTML=`
+    <div>トレード数：${total}</div>
+    <div>勝率：${winRate}%</div>
+    <div>平均pips：${avgPips}</div>
+    <div>累計損益：${monthSum.toLocaleString()} 円</div>
+  `;
+}
+
 </script>
 </body>
 </html>
+
