@@ -1,257 +1,199 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trade OS</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-  
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>USDJPY Trade Journal</title>
+
 <style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f2f2f7;
-  color: #111;
+:root {
+  --bg:#0f1220; --card:#1b1f3b; --accent:#4f7cff;
+  --text:#e6e8ff; --muted:#9aa0d1;
+  --win:#4caf50; --lose:#f44336;
 }
-
-header {
-  background: #000;
-  color: #fff;
-  padding: 14px;
-  text-align: center;
-  font-weight: 600;
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--text)
 }
-
-.tabs {
-  display: flex;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+header{padding:16px;text-align:center;font-size:20px;font-weight:600}
+nav{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:8px
 }
-
-.tab {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  color: #888;
-  font-weight: 500;
-  cursor: pointer;
+nav button{
+  background:var(--card);color:var(--text);border:none;
+  padding:8px 14px;border-radius:10px;cursor:pointer
 }
-
-.tab.active {
-  color: #007AFF;
-  border-bottom: 3px solid #007AFF;
+nav button.active{background:var(--accent)}
+main{padding:16px}
+.card{
+  background:var(--card);border-radius:14px;padding:16px;
+  margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)
 }
-
-.section {
-  display: none;
-  padding: 20px;
+.calendar-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px
 }
-
-.section.active {
-  display: block;
+.calendar{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px
 }
-
-h2 {
-  font-size: 18px;
-  margin-bottom: 16px;
+.day{
+  padding:6px 0;text-align:center;border-radius:10px;
+  background:rgba(255,255,255,.05);cursor:pointer;font-size:12px
 }
-
-label {
-  display: block;
-  margin-bottom: 14px;
-  font-size: 15px;
+.day .amount{display:block;font-size:10px}
+.day.win{background:rgba(76,175,80,.35)}
+.day.lose{background:rgba(244,67,54,.35)}
+.day:hover{filter:brightness(1.2)}
+.trade-list{margin-top:12px}
+.trade-item{
+  background:rgba(255,255,255,.05);padding:10px;border-radius:10px;
+  margin-bottom:8px;display:flex;justify-content:space-between;
+  align-items:center;font-size:13px
 }
-
-input, select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 16px;
+.trade-item.win{border-left:4px solid var(--win)}
+.trade-item.lose{border-left:4px solid var(--lose)}
+.trade-item button{
+  background:none;border:none;color:var(--muted);cursor:pointer
 }
-
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  font-size: 17px;
-  font-weight: 600;
-  background: #007AFF;
-  color: #fff;
-  margin-top: 24px;
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{
+  flex:1;min-width:120px;text-align:center;
+  background:rgba(255,255,255,.05);
+  border-radius:12px;padding:12px
 }
-
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7,1fr);
-  gap: 8px;
+input,select{
+  width:100%;padding:8px;margin-bottom:8px;
+  border-radius:8px;border:none
 }
-
-.day {
-  background: #fff;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 13px;
-  text-align: right;
-}
-
-.day.win { background:#34C759; color:#fff; }
-.day.lose { background:#FF3B30; color:#fff; }
-
-.log-item {
-  background: #fff;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  font-size: 14px;
-}
-
-.delete {
-  color: #FF3B30;
-  font-size: 12px;
-  text-align: right;
-  margin-top: 6px;
+button.primary{
+  width:100%;padding:10px;background:var(--accent);
+  border:none;border-radius:10px;color:#fff;font-size:16px
 }
 </style>
 </head>
 
 <body>
+<header>USDJPY トレード記録</header>
 
-<header>Trade OS</header>
+<nav>
+  <button id="tab-calendar" class="active">📅 カレンダー</button>
+  <button id="tab-check">🧠 チェック</button>
+  <button id="tab-record">📝 記録</button>
+  <button id="tab-stats">📊 集計</button>
+</nav>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab(0)">チェック</div>
-  <div class="tab" onclick="switchTab(1)">記録</div>
-  <div class="tab" onclick="switchTab(2)">カレンダー</div>
-</div>
+<main>
+<section id="calendar" class="card"></section>
 
-<!-- チェック -->
-<div class="section active">
-<h2>執行前チェック</h2>
-<label><input type="checkbox"> 4H方向一致</label>
-<label><input type="checkbox"> 1H初動</label>
-<label><input type="checkbox"> 執行足（15分）勢いあり</label>
-<label><input type="checkbox"> MA乖離なし</label>
-<label><input type="checkbox"> 抵抗帯ど真ん中でない</label>
+<section id="check" class="card" style="display:none">
+  <h3>チェックリスト</h3>
+  <label><input type="checkbox"> 1H 初動・形OK</label><br>
+  <label><input type="checkbox"> 4H 余力・整合OK</label><br>
+  <label><input type="checkbox"> 執行足OK</label><br>
+  <label><input type="checkbox"> 抵抗帯問題なし</label><br>
+</section>
 
-<h2>見送り理由</h2>
-<label><input type="checkbox"> 初動でない</label>
-<label><input type="checkbox"> 伸びきり</label>
-<label><input type="checkbox"> レンジ</label>
-<label><input type="checkbox"> 感情</label>
-</div>
+<section id="record" class="card" style="display:none">
+  <h3>トレード記録</h3>
+  <input type="date" id="tradeDate">
+  <input type="time" id="tradeTime">
+  <select id="result">
+    <option value="win">勝ち</option>
+    <option value="lose">負け</option>
+  </select>
+  <input type="number" id="lot" placeholder="ロット数">
+  <input type="number" id="amount" placeholder="損益（金額・円）">
+  <button class="primary" onclick="saveTrade()">保存</button>
+</section>
 
-<!-- 記録 -->
-<div class="section">
-<h2>トレード記録（pips）</h2>
-
-<label>結果
-<select id="result">
-  <option>勝ち</option>
-  <option>負け</option>
-</select></label>
-
-<label>pips
-<input id="pips" type="number" step="0.1"></label>
-
-<label>執行足
-<select id="tf">
-  <option>15分</option>
-  <option>1時間</option>
-</select></label>
-
-<button onclick="save()">記録する</button>
-
-<h2>当日内訳</h2>
-<div id="detail"></div>
-</div>
-
-<!-- カレンダー -->
-<div class="section">
-<h2>月次カレンダー</h2>
-<div class="calendar" id="calendar"></div>
-</div>
+<section id="stats" class="card" style="display:none"></section>
+</main>
 
 <script>
-let selectedDate=null;
+const tabs=["calendar","check","record","stats"];
+const trades=JSON.parse(localStorage.getItem("trades")||"[]");
+let currentMonth=new Date(),selectedDate=null;
 
-function switchTab(i){
-  document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('active',n===i));
-  document.querySelectorAll('.section').forEach((s,n)=>s.classList.toggle('active',n===i));
-}
-
-function load(){ return JSON.parse(localStorage.getItem('logs')||'[]'); }
-
-function save(){
-  const logs=load();
-  logs.push({
-    date:new Date().toISOString().slice(0,10),
-    result:result.value,
-    pips:Number(pips.value),
-    tf:tf.value
+tabs.forEach(t=>document.getElementById("tab-"+t).onclick=()=>showTab(t));
+function showTab(n){
+  tabs.forEach(t=>{
+    document.getElementById(t).style.display=t===n?"block":"none";
+    document.getElementById("tab-"+t).classList.toggle("active",t===n);
   });
-  localStorage.setItem('logs',JSON.stringify(logs));
-  renderCalendar();
-  alert('保存しました');
+  if(n==="calendar")renderCalendar();
+  if(n==="stats")renderStats();
 }
 
 function renderCalendar(){
-  const cal=document.getElementById('calendar');
-  cal.innerHTML='';
-  const logs=load();
-  const map={};
-  logs.forEach(l=>{
-    map[l.date]=map[l.date]||[];
-    map[l.date].push(l);
-  });
-
-  for(let d=1;d<=31;d++){
-    const date=new Date();
-    const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const div=document.createElement('div');
-    div.className='day';
-    div.textContent=d;
-
-    if(map[key]){
-      const sum=map[key].reduce((a,b)=>a+b.pips,0);
-      div.classList.add(sum>=0?'win':'lose');
-      div.onclick=()=>showDetail(key);
-    }
+  const el=calendar; el.innerHTML="";
+  const y=currentMonth.getFullYear(),m=currentMonth.getMonth();
+  const monthTrades=trades.filter(t=>t.date.startsWith(`${y}-${String(m+1).padStart(2,"0")}`));
+  const monthTotal=monthTrades.reduce((a,b)=>a+b.amount,0);
+  el.innerHTML+=`
+  <div class="calendar-header">
+    <button onclick="changeMonth(-1)">←</button>
+    <div>${y}-${m+1} ｜ 月計 ${monthTotal.toLocaleString()}円</div>
+    <button onclick="changeMonth(1)">→</button>
+  </div>`;
+  const cal=document.createElement("div"); cal.className="calendar";
+  const last=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=last;d++){
+    const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dayTrades=trades.filter(t=>t.date===ds);
+    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
+    const div=document.createElement("div"); div.className="day";
+    if(dayTrades.length)div.classList.add(total>=0?"win":"lose");
+    div.innerHTML=`<div>${d}</div>${dayTrades.length?`<span class="amount">${total.toLocaleString()}円</span>`:""}`;
+    div.onclick=()=>{selectedDate=ds;renderCalendar();renderDayDetail(el)};
     cal.appendChild(div);
   }
+  el.appendChild(cal);
+  if(selectedDate)renderDayDetail(el);
 }
 
-function showDetail(date){
-  selectedDate=date;
-  const box=document.getElementById('detail');
-  box.innerHTML='';
-  load().filter(l=>l.date===date).forEach((l,i)=>{
-    const div=document.createElement('div');
-    div.className='log-item';
-    div.innerHTML=`
-      ${l.result}｜${l.pips}pips｜${l.tf}
-      <div class="delete" onclick="del(${i})">削除</div>
-    `;
-    box.appendChild(div);
+function renderDayDetail(el){
+  const list=document.createElement("div"); list.className="trade-list";
+  list.innerHTML=`<h4>${selectedDate} 内訳</h4>`;
+  trades.filter(t=>t.date===selectedDate).forEach((t,i)=>{
+    const item=document.createElement("div");
+    item.className=`trade-item ${t.result}`;
+    item.innerHTML=`<div>${t.time}｜${t.amount.toLocaleString()}円｜${t.pips.toFixed(1)}p</div>
+    <button onclick="deleteTrade('${selectedDate}',${i})">🗑</button>`;
+    list.appendChild(item);
   });
+  el.appendChild(list);
 }
 
-function del(i){
-  const logs=load();
-  let out=[],c=0;
-  logs.forEach(l=>{
-    if(l.date===selectedDate){ if(c++!==i) out.push(l); }
-    else out.push(l);
+function deleteTrade(d,i){
+  const idx=trades.findIndex((t,ii)=>t.date===d&&ii===i);
+  if(idx>-1){trades.splice(idx,1);localStorage.setItem("trades",JSON.stringify(trades));renderCalendar()}
+}
+function changeMonth(n){currentMonth.setMonth(currentMonth.getMonth()+n);selectedDate=null;renderCalendar()}
+
+function saveTrade(){
+  const lotN=+lot.value,amt=+amount.value;
+  if(!tradeDate.value||!tradeTime.value||!lotN)return;
+  trades.push({
+    date:tradeDate.value,time:tradeTime.value,
+    lot:lotN,amount:amt,result:result.value,
+    pips:amt/(lotN*1000)
   });
-  localStorage.setItem('logs',JSON.stringify(out));
-  showDetail(selectedDate);
-  renderCalendar();
+  localStorage.setItem("trades",JSON.stringify(trades));
+  showTab("calendar");
 }
 
+function renderStats(){
+  const wins=trades.filter(t=>t.result==="win");
+  const winRate=trades.length?Math.round(wins.length/trades.length*100):0;
+  const avgPips=trades.length?(trades.reduce((a,b)=>a+b.pips,0)/trades.length).toFixed(1):0;
+  const dd=Math.min(0,...trades.reduce((a,b)=>{a.push((a.at(-1)||0)+b.amount);return a},[]));
+  stats.innerHTML=`<div class="stats">
+    <div class="stat"><h2>${winRate}%</h2><div>勝率</div></div>
+    <div class="stat"><h2>${avgPips}</h2><div>平均pips</div></div>
+    <div class="stat"><h2>${dd.toLocaleString()}円</h2><div>最大DD</div></div>
+  </div>`;
+}
 renderCalendar();
 </script>
-
 </body>
 </html>
