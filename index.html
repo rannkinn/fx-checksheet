@@ -483,10 +483,12 @@ function judge() {
 if (h1Long) {
   entryTypeEl.value = 'limit';
 
-  // ★ 執行足ラジオを無効化
-  document
+ document
     .querySelectorAll('input[name="exe"]')
-    .forEach(r => r.disabled = true);
+    .forEach(r => {
+      r.checked = false;  
+      r.disabled = true;
+    });
 
   box.textContent =
     '🟡 Bパターン｜1時間足 指値（戻し待ち）';
