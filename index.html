@@ -123,14 +123,20 @@ button.primary{
 /* ===== トレード記録 横並び ===== */
 .trade-row{
   display:grid;
-  grid-template-columns:1.3fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap:8px;
   margin-bottom:10px;
 }
+
+.trade-row-3{
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .trade-row input,
 .trade-row select{
   margin-bottom:0;
 }
+
 
 /* 勝ち負け色 */
 .result-win{color:var(--win);font-weight:600}
@@ -189,25 +195,33 @@ button.primary{
 <div id="finalResult" class="result-box">未判定</div>
 
 <h3>トレード記録</h3>
+
+<!-- 1段目：日付 / 時間 -->
 <div class="trade-row">
   <input type="date" id="date">
   <input type="time" id="time">
-  <select id="side">
-    <option value="Buy">買い</option>
-    <option value="Sell">売り</option>
-  </select>
+</div>
+
+<!-- 2段目：勝敗 / 買売 / 決済理由 -->
+<div class="trade-row trade-row-3">
   <select id="result">
     <option value="win">勝ち</option>
     <option value="lose">負け</option>
   </select>
-  <select id="exitReason">
-  <option value="">決済理由を選択</option>
-  <option value="TP">TP到達</option>
-  <option value="SL">SL到達</option>
-  <option value="TIME">時間切り</option>
-</select>
 
+  <select id="side">
+    <option value="Buy">買い</option>
+    <option value="Sell">売り</option>
+  </select>
+
+  <select id="exitReason">
+    <option value="">決済理由</option>
+    <option value="TP">TP到達</option>
+    <option value="SL">SL到達</option>
+    <option value="TIME">時間切り</option>
+  </select>
 </div>
+
 
 <input type="number" id="lot" placeholder="ロット数">
 <input type="number" id="amount" placeholder="損益（円）">
