@@ -669,23 +669,15 @@ if (editingTradeId) {
   imageData = null;
 
   alert('保存しました');
-  editingTradeId = null;
-  document.querySelector('button.primary').textContent = '保存';
+ editingTradeId = null;
 
-// ★ 編集完了後、判定を復活
-document
-  .querySelectorAll('input[type=checkbox], input[type=radio]')
-  .forEach(i => i.onchange = judge);
-
-  // 編集モード解除
-editingTradeId = null;
-
-// onchange を復活
+// onchange を完全復活
 document
   .querySelectorAll('input, select, textarea')
   .forEach(el => el.onchange = judge);
 
 document.querySelector('button.primary').textContent = '保存';
+
 
 }
 
