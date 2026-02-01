@@ -699,10 +699,15 @@ function showDayDetail(date) {
           </span>
           <span>
             ${
-              t.imageId
-                ? `<img style="width:100px;border-radius:6px;cursor:pointer"
-                       onclick="openDBImage('${t.imageId}')">`
-                : ''
+          t.imageId
+            ? `<img
+                 src=""
+                 data-img="${t.imageId}"
+                 style="width:100px;border-radius:6px;cursor:pointer"
+                 onclick="openDBImage('${t.imageId}')"
+               >`
+            : ''
+
             }
             <button onclick="deleteTrade(${i}, '${date}')">削除</button>
           </span>
@@ -710,6 +715,9 @@ function showDayDetail(date) {
       `
       )
       .join('');
+  document
+  .querySelectorAll('img[data-img]')
+  .forEach(img => loadThumb(img, img.dataset.img));
 }
 
 
@@ -872,6 +880,21 @@ function openDBImage(id) {
     const url = URL.createObjectURL(req.result.blob);
     const w = window.open();
     w.document.write(`<img src="${url}" style="max-width:100%">`);
+  };
+}
+
+function loadThumb(imgEl, id) {
+  if (!imgDB) {
+    setTimeout(() => loadThumb(imgEl, id), 100);
+    return;
+  }
+
+  const tx = imgDB.transaction('images', 'readonly');
+  const req = tx.objectStore('images').get(id);
+
+  req.onsuccess = () => {
+    if (!req.result) return;
+    imgEl.src = URL.createObjectURL(req.result.blob);
   };
 }
 
