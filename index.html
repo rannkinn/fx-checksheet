@@ -231,12 +231,12 @@
 <body>
   <header>Trade-OS</header>
 
-  <nav>
-    <button id="tab-check" class="active">🧠 チェック</button>
-    <button id="tab-calendar">📅 カレンダー</button>
-    <button id="tab-stats">📊 集計</button>
-    <button id="tab-lot">🧮 ロット計算</button>
-  </nav>
+<nav>
+  <button id="tab-check" class="active">🧠 チェック</button>
+  <button id="tab-lot">🧮 ロット計算</button>
+  <button id="tab-calendar">📅 カレンダー</button>
+  <button id="tab-stats">📊 集計</button>
+</nav>
 
   <main>
     <!-- ===============================
@@ -332,6 +332,24 @@
     </section>
 
     <!-- ===============================
+     LOT CALC TAB
+    =============================== -->
+    <section id="lot-calc" class="card" style="display:none">
+      <h3>ロット計算</h3>
+
+      <input type="number" id="margin" placeholder="証拠金（円）">
+      <input type="number" id="riskPercent" placeholder="損失許容率（%）">
+      <input type="number" id="stopPips" placeholder="損切幅（pips）">
+
+      <div class="result-box allow" id="lotResult">
+        ロット：-
+      </div>
+
+      <button class="primary" onclick="calcLot()">計算する</button>
+    </section>
+
+    
+    <!-- ===============================
          CALENDAR TAB
     =============================== -->
     <section id="calendar" class="card" style="display: none">
@@ -364,23 +382,6 @@
     =============================== -->
     <section id="stats" class="card" style="display: none">
       <div id="statsContent"></div>
-    </section>
-
-    <!-- ===============================
-     LOT CALC TAB
-    =============================== -->
-    <section id="lot-calc" class="card" style="display:none">
-      <h3>ロット計算</h3>
-
-      <input type="number" id="margin" placeholder="証拠金（円）">
-      <input type="number" id="riskPercent" placeholder="損失許容率（%）">
-      <input type="number" id="stopPips" placeholder="損切幅（pips）">
-
-      <div class="result-box allow" id="lotResult">
-        ロット：-
-      </div>
-
-      <button class="primary" onclick="calcLot()">計算する</button>
     </section>
 
   </main>
