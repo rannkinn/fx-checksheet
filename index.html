@@ -334,7 +334,7 @@
     <!-- ===============================
      LOT CALC TAB
     =============================== -->
-    <section id="lot" class="card" style="display:none">
+    <section id="lot-calc" class="card" style="display:none">
       <h3>ロット計算</h3>
 
       <input type="number" id="margin" placeholder="証拠金（円）">
@@ -659,7 +659,7 @@ result.addEventListener('change', () => {
    タブ切り替え
 ========================================================= */
 function switchTab(tabId) {
-  ['check', 'calendar', 'stats', 'lot'].forEach((id) => {
+  ['check', 'calendar', 'stats', 'lot-calc'].forEach((id) => {
     document.getElementById(id).style.display = 'none';
   });
 
@@ -669,12 +669,12 @@ function switchTab(tabId) {
     b.classList.remove('active')
   );
 
-  const map = {
-    check: 'tab-check',
-    calendar: 'tab-calendar',
-    stats: 'tab-stats',
-    lot: 'tab-lot',
-  };
+const map = {
+  check: 'tab-check',
+  calendar: 'tab-calendar',
+  stats: 'tab-stats',
+  'lot-calc': 'tab-lot',
+};
 
   document.getElementById(map[tabId]).classList.add('active');
 
@@ -691,7 +691,7 @@ function switchTab(tabId) {
 document.getElementById('tab-check').onclick    = () => switchTab('check');
 document.getElementById('tab-calendar').onclick = () => switchTab('calendar');
 document.getElementById('tab-stats').onclick    = () => switchTab('stats');
-document.getElementById('tab-lot').onclick = () => switchTab('lot');
+document.getElementById('tab-lot').onclick = () => switchTab('lot-calc');
 
 /* =========================================================
    集計
