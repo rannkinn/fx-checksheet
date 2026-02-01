@@ -1261,19 +1261,32 @@ function drawEquityChart(trades) {
 
   if (!trades.length) return;
 
-  // ★ 月内トレードだけで 0 から開始
-  let equity = 0;
-  const sorted = [...trades].sort((a, b) =>
-    (a.date + a.time).localeCompare(b.date + b.time)
-  );
-
-  const points = sorted.map(t => {
-    equity += t.amount;
-    return equity;
+  /* =========================
+     ① 日ごとに合算
+  ========================= */
+  const dailyMap = {};
+  trades.forEach(t => {
+    if (!t.date) return;
+    dailyMap[t.date] = (dailyMap[t.date] || 0) + t.amount;
   });
 
-  const max = Math.max(...points, 0);
-  const min = Math.min(...points, 0);
+  /* =========================
+     ② 日付順に並べる
+  ========================= */
+  const days = Object.keys(dailyMap).sort();
+
+  /* =========================
+     ③ 0スタート → 累積
+  ========================= */
+  let equity = 0;
+  const points = [0]; // ★ 0日目
+  days.forEach(d => {
+    equity += dailyMap[d];
+    points.push(equity);
+  });
+
+  const max = Math.max(...points);
+  const min = Math.min(...points);
 
   const padding = 30;
   const w = canvas.width;
@@ -1305,7 +1318,7 @@ function drawEquityChart(trades) {
   ctx.fillText('累積損益（円）', 0, 0);
   ctx.restore();
 
-  ctx.fillText('トレード回数（時系列）', w / 2 - 60, h - 8);
+  ctx.fillText('日数（0日目 →）', w / 2 - 50, h - 8);
 
   /* ===== 0ライン ===== */
   if (min < 0 && max > 0) {
@@ -1339,8 +1352,6 @@ function drawEquityChart(trades) {
   ctx.lineWidth = 2;
   ctx.stroke();
 }
-
-
   
 </script>
 <!-- ===============================
