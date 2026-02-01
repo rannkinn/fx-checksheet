@@ -217,7 +217,15 @@
       color: var(--lose);
       font-weight: 700;
     }
+/* ===== カレンダー 勝敗色 ===== */
+.day-win {
+  background: rgba(79, 124, 255, 0.35) !important;
+}
 
+.day-lose {
+  background: rgba(244, 67, 54, 0.35) !important;
+}
+    
  /* ===== 執行足エリア 無効表示 ===== */
 .exe-disabled {
   opacity: 0.35;
@@ -381,7 +389,19 @@
          STATS TAB
     =============================== -->
     <section id="stats" class="card" style="display: none">
-      <div id="statsContent"></div>
+      <h3>表示期間</h3>
+       <select id="statsMonth"></select>
+       <button class="primary" style="margin:8px 0"
+        onclick="exportCSV()">
+       📤 CSVエクスポート
+       </button>
+      <input  type="file"  id="csvImport"  accept=".csv"  style="margin:8px 0"/>
+       <button class="primary" style="margin-bottom:12px" onclick="importCSV()" >
+       📥 CSVインポート（復元）
+       </button>
+
+       <div id="statsContent"></div>
+       <canvas id="equityChart" height="160"></canvas>
     </section>
 
   </main>
@@ -391,7 +411,9 @@
    IndexedDB 初期化
 ========================================================= */
 let imgDB;
-
+let imgDBReady = false;
+let editingTradeId = null;
+  
 const dbReq = indexedDB.open('tradeImageDB', 1);
 
 dbReq.onupgradeneeded = (e) => {
@@ -400,7 +422,9 @@ dbReq.onupgradeneeded = (e) => {
 
 dbReq.onsuccess = (e) => {
   imgDB = e.target.result;
+  imgDBReady = true;
 };
+
 
 
 /* =========================================================
@@ -467,6 +491,7 @@ tradeImage.addEventListener('change', () => {
    エントリー判定
 ========================================================= */
 function judge() {
+  if (editingTradeId) return;
   const h1Base = [...document.querySelectorAll('.h1')]
     .filter(c => !c.classList.contains('h1-normal') && !c.classList.contains('h1-long'))
     .every(c => c.checked);
@@ -597,6 +622,10 @@ async function saveTrade() {
 
   const lot  = Number(lotEl.value);
   const amt  = Number(amountEl.value);
+  if (!lot || !amt) {
+  alert('ロットと損益を入力してください');
+  return;
+  }
   const pips = amt / (lot * 1000);
   pipsEl.value = pips.toFixed(1);
 
@@ -605,19 +634,33 @@ async function saveTrade() {
     imageId = await saveImageToDB(imageData);
   }
 
-  trades.push({
-    date: date.value,
-    time: time.value,
-    side: side.value,
-    result: result.value,
-    entryType: entryTypeEl.value,
-    lot,
-    amount: amt,
-    pips,
-    comment: comment.value,
-    exitReason: exitReasonEl.value,
-    imageId,
-  });
+ const tradeData = {
+  id: editingTradeId || ('trade_' + Date.now()),
+  date: date.value,
+  time: time.value,
+  side: side.value,
+  result: result.value,
+  entryType: entryTypeEl.value,
+  lot,
+  amount: amt,
+  pips,
+  comment: comment.value,
+  exitReason: exitReasonEl.value,
+  imageId: imageId ?? trades.find(t => t.id === editingTradeId)?.imageId ?? null
+};
+
+if (editingTradeId) {
+  // ===== 編集保存 =====
+  const index = trades.findIndex(t => t.id === editingTradeId);
+  if (index !== -1) {
+    trades[index] = tradeData;
+  }
+  editingTradeId = null; // 編集モード解除
+} else {
+  // ===== 新規保存 =====
+  trades.push(tradeData);
+}
+
 
   localStorage.setItem('trades', JSON.stringify(trades));
 
@@ -626,6 +669,8 @@ async function saveTrade() {
   imageData = null;
 
   alert('保存しました');
+  editingTradeId = null;
+  document.querySelector('button.primary').textContent = '保存';
 }
 
 
@@ -664,6 +709,14 @@ function renderCalendar() {
     cell.style.borderRadius = '8px';
     cell.style.background = 'rgba(255,255,255,.05)';
     cell.style.cursor = 'pointer';
+
+if (total > 0) {
+  cell.classList.add('day-win');
+} else if (total < 0) {
+  cell.classList.add('day-lose');
+}
+
+    
 cell.innerHTML = `
   <div style="display:flex;justify-content:space-between;align-items:center">
     <span>${d}</span>
@@ -724,7 +777,8 @@ function showDayDetail(date) {
 }
 
 
-            <button onclick="deleteTrade(${i}, '${date}')">削除</button>
+            <button onclick="editTrade('${t.id}')">編集</button>
+            <button onclick="deleteTrade('${t.id}')">削除</button>
           </span>
         </div>
       `
@@ -733,15 +787,39 @@ function showDayDetail(date) {
 
 }
 
+  function editTrade(id) {
+  const t = trades.find(tr => tr.id === id);
+  if (!t) return;
+
+  editingTradeId = id;
+
+  // フォームに反映
+  date.value = t.date;
+  time.value = t.time;
+  side.value = t.side;
+  result.value = t.result;
+  entryTypeEl.value = t.entryType;
+  lotEl.value = t.lot;
+  amountEl.value = t.amount;
+  pipsEl.value = t.pips;
+  comment.value = t.comment;
+  exitReasonEl.value = t.exitReason;
+
+  updateTradeVisual();
+
+  document.querySelector('button.primary').textContent = '更新';
+}
 
 /* =========================================================
    トレード削除
 ========================================================= */
-function deleteTrade(idx, date) {
-  const i = trades.findIndex((t, n) => t.date === date && n >= idx);
+function deleteTrade(id) {
+  const i = trades.findIndex(t => t.id === id);
+  if (i === -1) return;
+
   const trade = trades[i];
 
-  if (trade?.imageId) {
+  if (trade.imageId) {
     const tx = imgDB.transaction('images', 'readwrite');
     tx.objectStore('images').delete(trade.imageId);
   }
@@ -750,7 +828,7 @@ function deleteTrade(idx, date) {
   localStorage.setItem('trades', JSON.stringify(trades));
 
   renderCalendar();
-  showDayDetail(date);
+  showDayDetail(trade.date);
   updateImageUsage();
 }
 
@@ -808,7 +886,8 @@ const map = {
   }
 
   if (tabId === 'stats') {
-    renderStats();
+    buildMonthSelector();
+    renderStats('all');
   }
 }
 
@@ -820,68 +899,232 @@ document.getElementById('tab-lot').onclick = () => switchTab('lot-calc');
 /* =========================================================
    集計
 ========================================================= */
-function renderStats() {
+function renderStats(month = 'all') {
   const box = document.getElementById('statsContent');
-  if (!trades.length) {
+
+  const filtered =
+    month === 'all'
+      ? trades
+      : trades.filter(t => t.date?.startsWith(month));
+
+  if (!filtered.length) {
     box.innerHTML = 'データがありません';
+    drawEquityChart([]);
     return;
   }
 
-  const monthly = {};
+  const wins  = filtered.filter(t => t.amount > 0);
+  const loses = filtered.filter(t => t.amount < 0);
 
-  trades.forEach((t) => {
-    if (!t.date || t.date.length < 7) return;
-    const key = t.date.slice(0, 7);
-    if (!monthly[key]) monthly[key] = [];
-    monthly[key].push(t);
+  const total = filtered.length;
+  const winRate = ((wins.length / total) * 100).toFixed(1);
+
+  const totalWin  = wins.reduce((a,b)=>a+b.amount,0);
+  const totalLose = Math.abs(loses.reduce((a,b)=>a+b.amount,0));
+
+  const avgWin  = wins.length  ? totalWin / wins.length  : 0;
+  const avgLose = loses.length ? totalLose / loses.length : 0;
+
+  const rr = avgLose ? (avgWin / avgLose).toFixed(2) : '-';
+  const pf = totalLose ? (totalWin / totalLose).toFixed(2) : '-';
+
+  let peak = 0, equity = 0, maxDD = 0;
+  filtered.forEach(t => {
+    equity += t.amount;
+    peak = Math.max(peak, equity);
+    maxDD = Math.min(maxDD, equity - peak);
   });
 
-  box.innerHTML = Object.entries(monthly)
-    .map(([month, list]) => {
-      const wins  = list.filter((t) => t.amount > 0);
-      const loses = list.filter((t) => t.amount < 0);
+  box.innerHTML = `
+    勝率：${winRate}%<br>
+    勝敗数：${wins.length}勝 / ${loses.length}敗<br>
+    RR：${rr}<br>
+    PF：${pf}<br>
+    最大DD：${maxDD.toLocaleString()} 円
+  `;
 
-      const total = list.length;
-      const winRate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
-
-      const totalWin  = wins.reduce((a, b) => a + b.amount, 0);
-      const totalLose = Math.abs(loses.reduce((a, b) => a + b.amount, 0));
-
-      const avgWin  = wins.length  ? totalWin / wins.length  : 0;
-      const avgLose = loses.length ? totalLose / loses.length : 0;
-
-      const rr = avgLose ? (avgWin / avgLose).toFixed(2) : '-';
-      const pf = totalLose ? (totalWin / totalLose).toFixed(2) : '-';
-
-      let peak = 0;
-      let equity = 0;
-      let maxDD = 0;
-
-      list.forEach((t) => {
-        equity += t.amount;
-        if (equity > peak) peak = equity;
-        maxDD = Math.min(maxDD, equity - peak);
-      });
-
-      return `
-        <div style="margin-bottom:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.06)">
-          <strong>${month}</strong><br>
-          勝率：${winRate}%<br>
-          勝敗数：${wins.length}勝 / ${loses.length}敗<br>
-          RR：${rr}<br>
-          PF：${pf}<br>
-          最大DD：${maxDD.toLocaleString()} 円
-        </div>
-      `;
-    })
-    .join('');
+  drawEquityChart(filtered);
 }
 
+  
+function buildMonthSelector() {
+  const sel = document.getElementById('statsMonth');
+  sel.innerHTML = '';
+
+  // 全期間
+  const optAll = document.createElement('option');
+  optAll.value = 'all';
+  optAll.textContent = '全期間';
+  sel.appendChild(optAll);
+
+  // 月一覧（重複なし）
+  const months = [...new Set(
+    trades
+      .filter(t => t.date)
+      .map(t => t.date.slice(0, 7))
+  )].sort().reverse();
+
+  months.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    sel.appendChild(opt);
+  });
+
+  sel.onchange = () => renderStats(sel.value);
+}
+
+function exportCSV() {
+  const sel = document.getElementById('statsMonth');
+  const month = sel?.value || 'all';
+
+  const target =
+    month === 'all'
+      ? trades
+      : trades.filter(t => t.date?.startsWith(month));
+
+  if (!target.length) {
+    alert('エクスポートするデータがありません');
+    return;
+  }
+
+  const header = [
+    '日付',
+    '時刻',
+    '売買',
+    'エントリー方法',
+    '勝敗',
+    '決済理由',
+    'ロット',
+    '損益',
+    'pips',
+    'コメント'
+  ];
+
+  const rows = target.map(t => [
+    t.date,
+    t.time,
+    t.side,
+    t.entryType === 'limit' ? '指値' : '成行',
+    t.result === 'win' ? '勝ち' : '負け',
+    t.exitReason,
+    t.lot,
+    t.amount,
+    t.pips,
+    (t.comment || '').replace(/\n/g, ' ')
+  ]);
+
+  const csv =
+    '\uFEFF' + // BOM（Excel対策）
+    [header, ...rows]
+      .map(r => r.map(v => `"${v ?? ''}"`).join(','))
+      .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download =
+    month === 'all'
+      ? 'trade_backup_all.csv'
+      : `trade_backup_${month}.csv`;
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importCSV() {
+  const fileInput = document.getElementById('csvImport');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert('CSVファイルを選択してください');
+    return;
+  }
+
+  if (!confirm(
+    'CSVを読み込んで復元します。\n' +
+    '既存データに「追加」されます。\n\n' +
+    'よろしいですか？'
+  )) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const text = reader.result;
+    const lines = text
+      .replace(/\uFEFF/g, '') // BOM除去
+      .trim()
+      .split('\n');
+
+    if (lines.length < 2) {
+      alert('CSVの内容が不正です');
+      return;
+    }
+
+    const rows = lines.slice(1); // ヘッダ除外
+    let imported = 0;
+
+    const existingKeys = new Set(
+     trades.map(t => `${t.date}_${t.time}_${t.side}_${t.amount}`)
+    );
+
+rows.forEach(line => {
+  const cols = line
+    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+    .map(v => v.replace(/^"|"$/g, ''));
+
+  if (cols.length < 10) return;
+
+  const trade = {
+    id: 'import_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+    date: cols[0],
+    time: cols[1],
+    side: cols[2],
+    entryType: cols[3] === '指値' ? 'limit' : 'market',
+    result: cols[4] === '勝ち' ? 'win' : 'lose',
+    exitReason: cols[5],
+    lot: Number(cols[6]),
+    amount: Number(cols[7]),
+    pips: Number(cols[8]),
+    comment: cols[9],
+    imageId: null
+  };
+
+  const key = `${trade.date}_${trade.time}_${trade.side}_${trade.amount}`;
+  if (existingKeys.has(key)) return;
+
+  trades.push(trade);
+  existingKeys.add(key);
+  imported++;
+});
+
+    localStorage.setItem('trades', JSON.stringify(trades));
+    const skipped = rows.length - imported;
+    alert(
+      `インポート完了\n` +
+      `追加：${imported} 件\n` +
+      `スキップ（重複）：${skipped} 件`
+    );
+
+    fileInput.value = '';
+    buildMonthSelector();  
+    renderStats('all');  
+  };
+
+  reader.readAsText(file, 'utf-8');
+}
 
 /* =========================================================
    画像表示 & 使用量
 ========================================================= */
 function openDBImage(id) {
+  if (!imgDBReady) {
+    alert('画像DB準備中です');
+    return;
+  }
   const tx = imgDB.transaction('images', 'readonly');
   const req = tx.objectStore('images').get(id);
 
@@ -910,6 +1153,8 @@ document.getElementById('imageModal').addEventListener('click', e => {
 
 
 function updateImageUsage() {
+  if (!imgDBReady) return;
+
   if (!imgDB) return;
 
   let totalBytes = 0;
@@ -934,8 +1179,8 @@ function updateImageUsage() {
    月次画像整理
 ========================================================= */
 function cleanupImagesForCurrentMonth() {
-  if (!imgDB) {
-    alert('画像DBの準備中です。少し待ってください');
+  if (!imgDBReady) {
+    alert('画像DB準備中です');
     return;
   }
 
@@ -1007,6 +1252,34 @@ function calcLot() {
     `ロット：${lot.toFixed(2)} lot`;
   lotEl.value = lot.toFixed(2);
 }
+function drawEquityChart(trades) {
+  const canvas = document.getElementById('equityChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let equity = 0;
+  const sorted = [...trades].sort((a,b) =>
+  (a.date + a.time).localeCompare(b.date + b.time)
+  );
+  const points = sorted.map(t => equity += t.amount);
+
+  const max = Math.max(...points, 0);
+  const min = Math.min(...points, 0);
+
+  ctx.beginPath();
+  points.forEach((v, i) => {
+    const x = (i / (points.length - 1 || 1)) * canvas.width;
+    const y = canvas.height - ((v - min) / (max - min || 1)) * canvas.height;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+
+  ctx.strokeStyle = '#4f7cff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+  
 </script>
 <!-- ===============================
      Image Modal
