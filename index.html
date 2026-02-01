@@ -194,6 +194,23 @@ button.primary{
 
 <button class="primary" onclick="saveTrade()">保存</button>
 </section>
+<section id="calendar" class="card" style="display:none">
+  <div id="calendarHeader"
+       style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <button onclick="changeMonth(-1)">←</button>
+    <div id="currentMonth"></div>
+    <button onclick="changeMonth(1)">→</button>
+  </div>
+
+  <div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
+  <div id="calendarGrid"
+       style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+  <div id="dayDetail" style="margin-top:14px"></div>
+</section>
+
+<section id="stats" class="card" style="display:none">
+  <div id="statsContent">データなし</div>
+</section>
 
 </main>
 <script>
