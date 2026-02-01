@@ -277,29 +277,33 @@ function judge(){
 }
 
 function saveTrade(){
-  const lot=Number(lotEl.value);
-  const amt=Number(amountEl.value);
-  const pips=amt/(lot*1000);
-  pipsEl.value=pips.toFixed(1);
+  const lot = Number(lotEl.value);
+  const amt = Number(amountEl.value);
+  const pips = amt / (lot * 1000);
+  pipsEl.value = pips.toFixed(1);
 
-trades.push({
-  date:date.value,
-  time:time.value,
-  side:side.value,
-  result:result.value,
-  lot,
-  amount:amt,
-  pips,
-  comment:comment.value,
-  image: imageData // ★追加
+  trades.push({
+    date: date.value,
+    time: time.value,
+    side: side.value,
+    result: result.value,
+    lot,
+    amount: amt,
+    pips,
+    comment: comment.value,
+    image: imageData
+  });
+
+  localStorage.setItem('trades', JSON.stringify(trades));
+
+  // ★ これらは「オブジェクトの外」で実行する
   tradeImage.value = '';
-　previewImage.style.display = 'none';
-　imageData = null;
-});
+  previewImage.style.display = 'none';
+  imageData = null;
 
-  localStorage.setItem('trades',JSON.stringify(trades));
   alert('保存しました');
 }
+
 let current=new Date();
 function changeMonth(diff){
   current.setMonth(current.getMonth()+diff);
@@ -341,7 +345,13 @@ function showDayDetail(date){
     list.map((t,i)=>`
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span>${t.time} ${t.side} ${t.amount}</span>
-　　　　　${t.image ? `<img src="${t.image}" style="width:100px;border-radius:6px;cursor:pointer" onclick="openImage('${t.image}')">` : ''}
+　　　　　${t.image ? `
+  <img src="${t.image}"
+       style="width:100px;border-radius:6px;cursor:pointer"
+       onclick="openImage(this.src)">
+` : ''}
+
+
         <button onclick="deleteTrade(${i},'${date}')">削除</button>
       </div>
     `).join('');
