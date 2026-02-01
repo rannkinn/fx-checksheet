@@ -67,9 +67,7 @@ main{padding:16px}
 
 h3,h4{margin:8px 0}
 
-/* =========================
-   ★ チェックボックスUI改良
-   ========================= */
+/* ===== チェックボックスUI安定化 ===== */
 label{
   display:flex;
   align-items:flex-start;
@@ -77,20 +75,17 @@ label{
   margin:8px 0;
   font-size:14px;
 }
-
 label input{
   margin-top:2px;
-  flex-shrink:0; /* チェックボックス固定 */
+  flex-shrink:0;
 }
-
 label span{
   flex:1;
   line-height:1.5;
   white-space:normal;
   word-break:break-word;
 }
-
-/* ========================= */
+/* ================================= */
 
 input,select,textarea{
   width:100%;
@@ -134,21 +129,13 @@ button.primary{
 
 /* レスポンシブ */
 @media (max-width:600px){
-  nav{
-    flex-direction:column;
-  }
-  nav button{
-    width:100%;
-  }
+  nav{flex-direction:column}
+  nav button{width:100%}
   #calendarGrid{
     grid-template-columns:repeat(2,1fr);
     gap:4px;
   }
-
-  /* ★ スマホで自然に折り返す */
-  label{
-    flex-wrap:wrap;
-  }
+  label{flex-wrap:wrap}
 }
 
 @media (min-width:601px) and (max-width:900px){
@@ -214,9 +201,141 @@ button.primary{
 <button class="primary" onclick="saveTrade()">保存</button>
 </section>
 
-<!-- 以下 JS / カレンダー / 集計：完全に元ソースそのまま -->
+<section id="calendar" class="card" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <button onclick="changeMonth(-1)">←</button>
+    <div id="currentMonth"></div>
+    <button onclick="changeMonth(1)">→</button>
+  </div>
+  <div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
+  <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+  <div id="dayDetail" style="margin-top:14px"></div>
+</section>
+
+<section id="stats" class="card" style="display:none">
+  <div id="statsContent"></div>
+</section>
+
+</main>
+
 <script>
-const trades=JSON.parse(localStorage.getItem('trades')||'[]'); const date=document.getElementById('date'); const time=document.getElementById('time'); const side=document.getElementById('side'); const result=document.getElementById('result'); const lotEl=document.getElementById('lot'); const amountEl=document.getElementById('amount'); const pipsEl=document.getElementById('pips'); const comment=document.getElementById('comment'); document.querySelectorAll('input').forEach(i=>i.onchange=judge); function judge(){ const h1=[...document.querySelectorAll('.h1')].every(c=>c.checked); const h4=[...document.querySelectorAll('.h4')].every(c=>c.checked); const exe=document.querySelector('input[name="exe"]:checked'); const box=document.getElementById('finalResult'); if(!h1){ box.innerHTML='❌ 見送り：1時間足条件未達'; box.className='result-box deny'; return; } if(!h4){ box.innerHTML='❌ 見送り：4時間足が否定'; box.className='result-box deny'; return; } if(!exe){ box.innerHTML='⚠ 執行足未選択'; return; } box.innerHTML=✅ エントリー可｜執行足：${exe.value}分; box.className='result-box allow'; } function saveTrade(){ const lot=Number(lotEl.value); const amt=Number(amountEl.value); const pips=amt/(lot*1000); pipsEl.value=pips.toFixed(1); trades.push({ date:date.value, time:time.value, side:side.value, result:result.value, lot, amount:amt, pips, comment:comment.value }); localStorage.setItem('trades',JSON.stringify(trades)); alert('保存しました'); } // --- カレンダー --- let current = new Date(); function changeMonth(diff){ current.setMonth(current.getMonth()+diff); renderCalendar(); } function renderCalendar(){ const y=current.getFullYear(); const m=current.getMonth(); document.getElementById('currentMonth').textContent=${y}年 ${m+1}月; const grid=document.getElementById('calendarGrid'); grid.innerHTML=''; let monthSum=0; const days=new Date(y,m+1,0).getDate(); for(let d=1;d<=days;d++){ const dateStr=${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}; const dayTrades=trades.filter(t=>t.date===dateStr); const total=dayTrades.reduce((a,b)=>a+b.amount,0); monthSum+=total; const cell=document.createElement('div'); cell.style.padding='6px'; cell.style.borderRadius='8px'; cell.style.background='rgba(255,255,255,.05)'; cell.style.cursor='pointer'; cell.innerHTML=<div>${d}</div><div style="font-size:12px">${total||''}</div>; cell.onclick=()=>showDayDetail(dateStr); grid.appendChild(cell); } document.getElementById('monthTotal').textContent=月合計：${monthSum.toLocaleString()} 円; } function showDayDetail(date){ const box=document.getElementById('dayDetail'); const list=trades.filter(t=>t.date===date); if(!list.length){ box.innerHTML=''; return; } box.innerHTML=<h4>${date} 内訳</h4>+ list.map((t,i)=> <div style="display:flex;justify-content:space-between;align-items:center"> <span>${t.time} ${t.side} ${t.amount}</span> <button onclick="deleteTrade(${i},'${date}')">削除</button> </div> ).join(''); } function deleteTrade(idx,date){ const i=trades.findIndex((t,n)=>t.date===date && n>=idx); trades.splice(i,1); localStorage.setItem('trades',JSON.stringify(trades)); renderCalendar(); showDayDetail(date); } // --- タブ切替 --- function switchTab(tabId){ document.getElementById('check').style.display='none'; document.getElementById('calendar').style.display='none'; document.getElementById('stats').style.display='none'; document.getElementById(tabId).style.display='block'; document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); const btnMap={ 'check':'tab-check', 'calendar':'tab-calendar', 'stats':'tab-stats' }; document.getElementById(btnMap[tabId]).classList.add('active'); if(tabId==='calendar') renderCalendar(); } document.getElementById('tab-check').onclick=()=>switchTab('check'); document.getElementById('tab-calendar').onclick=()=>switchTab('calendar'); document.getElementById('tab-stats').onclick=()=>switchTab('stats'); // --- 集計 --- function renderStats(){ const statsContent=document.getElementById('statsContent'); if(!trades.length){ statsContent.innerHTML='データなし'; return; } const wins=trades.filter(t=>t.result==='win').length; const total=trades.length; const winRate=((wins/total)*100).toFixed(1); const avgPips=(trades.reduce((a,b)=>a+b.pips,0)/total).toFixed(1); const monthSum=trades.reduce((a,b)=>a+b.amount,0); statsContent.innerHTML= <div>トレード数：${total}</div> <div>勝率：${winRate}%</div> <div>平均pips：${avgPips}</div> <div>累計損益：${monthSum.toLocaleString()} 円</div> ; }
+const trades=JSON.parse(localStorage.getItem('trades')||'[]');
+
+const date=document.getElementById('date');
+const time=document.getElementById('time');
+const side=document.getElementById('side');
+const result=document.getElementById('result');
+const lotEl=document.getElementById('lot');
+const amountEl=document.getElementById('amount');
+const pipsEl=document.getElementById('pips');
+const comment=document.getElementById('comment');
+
+document.querySelectorAll('input').forEach(i=>i.onchange=judge);
+
+function judge(){
+  const h1=[...document.querySelectorAll('.h1')].every(c=>c.checked);
+  const h4=[...document.querySelectorAll('.h4')].every(c=>c.checked);
+  const exe=document.querySelector('input[name="exe"]:checked');
+  const box=document.getElementById('finalResult');
+
+  if(!h1){ box.innerHTML='❌ 見送り：1時間足条件未達'; box.className='result-box deny'; return; }
+  if(!h4){ box.innerHTML='❌ 見送り：4時間足が否定'; box.className='result-box deny'; return; }
+  if(!exe){ box.innerHTML='⚠ 執行足未選択'; return; }
+
+  box.innerHTML=`✅ エントリー可｜執行足：${exe.value}分`;
+  box.className='result-box allow';
+}
+
+function saveTrade(){
+  const lot=Number(lotEl.value);
+  const amt=Number(amountEl.value);
+  const pips=amt/(lot*1000);
+  pipsEl.value=pips.toFixed(1);
+
+  trades.push({
+    date:date.value,
+    time:time.value,
+    side:side.value,
+    result:result.value,
+    lot,
+    amount:amt,
+    pips,
+    comment:comment.value
+  });
+  localStorage.setItem('trades',JSON.stringify(trades));
+  alert('保存しました');
+}
+
+let current=new Date();
+function changeMonth(diff){
+  current.setMonth(current.getMonth()+diff);
+  renderCalendar();
+}
+function renderCalendar(){
+  const y=current.getFullYear();
+  const m=current.getMonth();
+  document.getElementById('currentMonth').textContent=`${y}年 ${m+1}月`;
+  const grid=document.getElementById('calendarGrid');
+  grid.innerHTML='';
+  let monthSum=0;
+
+  const days=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=days;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTrades=trades.filter(t=>t.date===dateStr);
+    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
+    monthSum+=total;
+
+    const cell=document.createElement('div');
+    cell.style.padding='6px';
+    cell.style.borderRadius='8px';
+    cell.style.background='rgba(255,255,255,.05)';
+    cell.style.cursor='pointer';
+    cell.innerHTML=`<div>${d}</div><div style="font-size:12px">${total||''}</div>`;
+    cell.onclick=()=>showDayDetail(dateStr);
+    grid.appendChild(cell);
+  }
+  document.getElementById('monthTotal').textContent=`月合計：${monthSum.toLocaleString()} 円`;
+}
+
+function showDayDetail(date){
+  const box=document.getElementById('dayDetail');
+  const list=trades.filter(t=>t.date===date);
+  if(!list.length){ box.innerHTML=''; return; }
+
+  box.innerHTML=`<h4>${date} 内訳</h4>`+
+    list.map((t,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>${t.time} ${t.side} ${t.amount}</span>
+        <button onclick="deleteTrade(${i},'${date}')">削除</button>
+      </div>
+    `).join('');
+}
+
+function deleteTrade(idx,date){
+  const i=trades.findIndex((t,n)=>t.date===date && n>=idx);
+  trades.splice(i,1);
+  localStorage.setItem('trades',JSON.stringify(trades));
+  renderCalendar();
+  showDayDetail(date);
+}
+
+function switchTab(tabId){
+  ['check','calendar','stats'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById(tabId).style.display='block';
+
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  const map={check:'tab-check',calendar:'tab-calendar',stats:'tab-stats'};
+  document.getElementById(map[tabId]).classList.add('active');
+
+  if(tabId==='calendar') renderCalendar();
+}
+
+document.getElementById('tab-check').onclick=()=>switchTab('check');
+document.getElementById('tab-calendar').onclick=()=>switchTab('calendar');
+document.getElementById('tab-stats').onclick=()=>switchTab('stats');
 </script>
 
 </body>
