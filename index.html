@@ -319,18 +319,18 @@ if(result.value === 'win' && exitReasonEl.value === 'SL'){
   const pips = amt / (lot * 1000);
   pipsEl.value = pips.toFixed(1);
 
-  trades.push({
-    date: date.value,
-    time: time.value,
-    side: side.value,
-    result: result.value,
-    lot,
-    amount: amt,
-    pips,
-    comment: comment.value,
-    image: imageData
-    exitReason: exitReasonEl.value
-  });
+trades.push({
+  date: date.value,
+  time: time.value,
+  side: side.value,
+  result: result.value,
+  lot,
+  amount: amt,
+  pips,
+  comment: comment.value,
+  image: imageData,
+  exitReason: exitReasonEl.value
+});
 
   localStorage.setItem('trades', JSON.stringify(trades));
   exitReasonEl.value = '';
