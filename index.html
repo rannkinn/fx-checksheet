@@ -1259,19 +1259,65 @@ function drawEquityChart(trades) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  if (!trades.length) return;
+
   let equity = 0;
-  const sorted = [...trades].sort((a,b) =>
-  (a.date + a.time).localeCompare(b.date + b.time)
+  const sorted = [...trades].sort((a, b) =>
+    (a.date + a.time).localeCompare(b.date + b.time)
   );
   const points = sorted.map(t => equity += t.amount);
 
   const max = Math.max(...points, 0);
   const min = Math.min(...points, 0);
 
+  const padding = 30;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  /* ===== 軸 ===== */
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+
+  // Y軸
+  ctx.beginPath();
+  ctx.moveTo(padding, 10);
+  ctx.lineTo(padding, h - padding);
+  ctx.stroke();
+
+  // X軸
+  ctx.beginPath();
+  ctx.moveTo(padding, h - padding);
+  ctx.lineTo(w - 10, h - padding);
+  ctx.stroke();
+
+  /* ===== ラベル ===== */
+  ctx.fillStyle = '#9aa0d1';
+  ctx.font = '11px system-ui';
+
+  // Y軸ラベル
+  ctx.save();
+  ctx.translate(10, h / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('累積損益（円）', 0, 0);
+  ctx.restore();
+
+  // X軸ラベル
+  ctx.fillText(
+    'トレード回数（時系列）',
+    w / 2 - 60,
+    h - 8
+  );
+
+  /* ===== グラフ ===== */
   ctx.beginPath();
   points.forEach((v, i) => {
-    const x = (i / (points.length - 1 || 1)) * canvas.width;
-    const y = canvas.height - ((v - min) / (max - min || 1)) * canvas.height;
+    const x =
+      padding +
+      (i / (points.length - 1 || 1)) * (w - padding - 10);
+    const y =
+      (h - padding) -
+      ((v - min) / (max - min || 1)) * (h - padding - 10);
+
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   });
 
@@ -1279,6 +1325,7 @@ function drawEquityChart(trades) {
   ctx.lineWidth = 2;
   ctx.stroke();
 }
+
   
 </script>
 <!-- ===============================
