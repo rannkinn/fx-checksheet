@@ -491,6 +491,9 @@ tradeImage.addEventListener('change', () => {
    エントリー判定
 ========================================================= */
 function judge() {
+  function judge() {
+  if (editingTradeId) return;
+
   const h1Base = [...document.querySelectorAll('.h1')]
     .filter(c => !c.classList.contains('h1-normal') && !c.classList.contains('h1-long'))
     .every(c => c.checked);
@@ -1201,22 +1204,32 @@ function cleanupImagesForCurrentMonth() {
     return;
   }
 
-  const now = new Date();
-  const currentMonthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  if (currentMonthStart > thisMonthStart) {
-    alert('未来の月は整理できません');
-    return;
-  }
-
   const year  = current.getFullYear();
   const month = current.getMonth() + 1;
+  const border = `${year}-${String(month).padStart(2, '0')}-01`;
 
-  if (!confirm(`${year}年${month}月より前の画像をすべて削除します`)) return;
+  if (!confirm(`${year}年${month}月より前の画像を削除します`)) return;
 
-  deleteImagesBeforeMonth(year, month);
+  const targets = trades
+    .filter(t => t.imageId && t.date < border)
+    .map(t => t.imageId);
+
+  const tx = imgDB.transaction('images', 'readwrite');
+  const store = tx.objectStore('images');
+
+  targets.forEach(id => store.delete(id));
+
+  trades.forEach(t => {
+    if (t.date < border) delete t.imageId;
+  });
+
+  tx.oncomplete = () => {
+    localStorage.setItem('trades', JSON.stringify(trades));
+    updateImageUsage();
+    alert('画像を削除しました');
+  };
 }
+
 
 function deleteImagesBeforeMonth(year, month) {
   const borderTime = new Date(year, month - 1, 1).getTime();
