@@ -776,8 +776,9 @@ function showDayDetail(date) {
   : ''
 }
 
-          <button type="button" class="edit-btn" data-id="${t.id}">編集</button>
-          <button type="button" class="delete-btn" data-id="${t.id}">削除</button>
+<button type="button" onclick="editTrade('${t.id}')">編集</button>
+<button type="button" onclick="deleteTrade('${t.id}')">削除</button>
+
 
 
           </span>
