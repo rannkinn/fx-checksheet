@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USDJPY Trade Journal</title>
+  <title>Trade-OS</title>
 
   <style>
     /* ===============================
@@ -706,8 +706,8 @@ function showDayDetail(date) {
             (${t.exitReason || '理由不明'})
           </span>
           <span>
-            ${
-         ${t.imageId
+
+       ${t.imageId
   ? `<a
        href="javascript:void(0)"
        onclick="openDBImage('${t.imageId}')"
@@ -722,6 +722,7 @@ function showDayDetail(date) {
      </a>`
   : ''
 }
+
 
             <button onclick="deleteTrade(${i}, '${date}')">削除</button>
           </span>
