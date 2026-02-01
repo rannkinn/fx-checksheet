@@ -200,6 +200,13 @@ button.primary{
     <option value="win">勝ち</option>
     <option value="lose">負け</option>
   </select>
+  <select id="exitReason">
+  <option value="">決済理由を選択</option>
+  <option value="TP">TP到達</option>
+  <option value="SL">SL到達</option>
+  <option value="TIME">時間切り</option>
+</select>
+
 </div>
 
 <input type="number" id="lot" placeholder="ロット数">
@@ -237,6 +244,7 @@ const date=document.getElementById('date');
 const time=document.getElementById('time');
 const side=document.getElementById('side');
 const result=document.getElementById('result');
+const exitReasonEl = document.getElementById('exitReason');
 const lotEl=document.getElementById('lot');
 const amountEl=document.getElementById('amount');
 const pipsEl=document.getElementById('pips');
@@ -281,6 +289,17 @@ function saveTrade(){
     alert('日付を入力してください');
     return;
   }
+  if(!exitReasonEl.value){
+  alert('決済理由を選択してください');
+  return;
+}
+
+// 論理的におかしい組み合わせを防ぐ（任意だが超おすすめ）
+if(result.value === 'win' && exitReasonEl.value === 'SL'){
+  alert('勝ちでSL到達は選択できません');
+  return;
+}
+
   const lot = Number(lotEl.value);
   const amt = Number(amountEl.value);
   const pips = amt / (lot * 1000);
@@ -296,11 +315,13 @@ function saveTrade(){
     pips,
     comment: comment.value,
     image: imageData
+    exitReason: exitReasonEl.value
   });
 
   localStorage.setItem('trades', JSON.stringify(trades));
-
-  // ★ これらは「オブジェクトの外」で実行する
+  exitReasonEl.value = '';
+  
+　 // ★ これらは「オブジェクトの外」で実行する
   tradeImage.value = '';
   previewImage.style.display = 'none';
   imageData = null;
@@ -348,7 +369,10 @@ function showDayDetail(date){
   box.innerHTML=`<h4>${date} 内訳</h4>`+
     list.map((t,i)=>`
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span>${t.time} ${t.side} ${t.amount}</span>
+        <span>
+          ${t.time} ${t.side} ${t.amount}
+          (${t.exitReason || '理由不明'})
+        </span>
 　　　　　${t.image ? `
   <img src="${t.image}"
        style="width:100px;border-radius:6px;cursor:pointer"
@@ -382,7 +406,13 @@ function updateTradeVisual(){
 updateTradeVisual();
 side.addEventListener('change',updateTradeVisual);
 result.addEventListener('change',updateTradeVisual);
+result.addEventListener('change', ()=>{
+  [...exitReasonEl.options].forEach(opt=>{
+    opt.disabled = result.value === 'win' && opt.value === 'SL';
+  });
+});
 
+  
 /* ===== タブ ===== */
 function switchTab(tabId){
   ['check','calendar','stats'].forEach(id=>{
