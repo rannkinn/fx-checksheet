@@ -9,12 +9,12 @@
 :root{
   --bg:#0f1220;
   --card:#1b1f3b;
-  --row:#20255a;           /* ★ 行背景 */
+  --row:#20255a;
   --border:rgba(255,255,255,.12);
   --accent:#4f7cff;
   --text:#e6e8ff;
   --muted:#9aa0d1;
-  --win:#4caf50;
+  --win:#4f7cff;
   --lose:#f44336;
 }
 
@@ -69,9 +69,7 @@ h3{
   color:var(--muted);
 }
 
-/* ===============================
-   ★ 画像寄せ：チェック行UI
-   =============================== */
+/* チェック行 */
 label{
   display:flex;
   align-items:center;
@@ -82,23 +80,11 @@ label{
   font-size:14px;
   cursor:pointer;
 }
+label:last-of-type{border-bottom:none}
+label input{width:18px;height:18px;flex-shrink:0}
+label span{flex:1}
 
-label:last-of-type{
-  border-bottom:none;
-}
-
-label input{
-  width:18px;
-  height:18px;
-  flex-shrink:0;
-}
-
-label span{
-  flex:1;
-  line-height:1.4;
-}
-/* =============================== */
-
+/* 入力共通 */
 input,select,textarea{
   width:100%;
   padding:10px;
@@ -111,7 +97,7 @@ input,select,textarea{
 
 textarea{height:60px}
 
-/* ★ 未判定ボックス */
+/* 判定表示 */
 .result-box{
   margin:14px 0;
   padding:12px;
@@ -120,7 +106,6 @@ textarea{height:60px}
   background:rgba(255,255,255,.08);
   font-weight:600;
 }
-
 .allow{color:var(--win)}
 .deny{color:var(--lose)}
 
@@ -135,7 +120,34 @@ button.primary{
   font-size:16px;
 }
 
-/* レスポンシブ */
+/* ===== トレード記録 横並び ===== */
+.trade-row{
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
+.trade-row input,
+.trade-row select{
+  margin-bottom:0;
+}
+
+/* 勝ち負け色 */
+.result-win{color:var(--win);font-weight:600}
+.result-lose{color:var(--lose);font-weight:600}
+
+/* 売買アイコン */
+.side-buy::before{
+  content:"↑ ";
+  color:var(--win);
+  font-weight:700;
+}
+.side-sell::before{
+  content:"↓ ";
+  color:var(--lose);
+  font-weight:700;
+}
+
 @media(max-width:600px){
   nav{flex-direction:column}
 }
@@ -163,7 +175,7 @@ button.primary{
 <label><input type="checkbox" class="h1"><span>抵抗帯ど真ん中でない</span></label>
 <label><input type="checkbox" class="h1"><span>「まだ伸びそう」と感じる形</span></label>
 
-<h3>ステップ②【4時間足】（1つでもNOで見送り）</h3>
+<h3>ステップ②【4時間足】</h3>
 <label><input type="checkbox" class="h4"><span>明確な方向がある</span></label>
 <label><input type="checkbox" class="h4"><span>頂点・底付近でない</span></label>
 <label><input type="checkbox" class="h4"><span>TR的に余力あり</span></label>
@@ -177,16 +189,19 @@ button.primary{
 <div id="finalResult" class="result-box">未判定</div>
 
 <h3>トレード記録</h3>
-<input type="date" id="date">
-<input type="time" id="time">
-<select id="side">
-  <option value="Buy">買い</option>
-  <option value="Sell">売り</option>
-</select>
-<select id="result">
-  <option value="win">勝ち</option>
-  <option value="lose">負け</option>
-</select>
+<div class="trade-row">
+  <input type="date" id="date">
+  <input type="time" id="time">
+  <select id="side">
+    <option value="Buy">買い</option>
+    <option value="Sell">売り</option>
+  </select>
+  <select id="result">
+    <option value="win">勝ち</option>
+    <option value="lose">負け</option>
+  </select>
+</div>
+
 <input type="number" id="lot" placeholder="ロット数">
 <input type="number" id="amount" placeholder="損益（円）">
 <input type="number" id="pips" placeholder="pips（自動）" disabled>
@@ -208,9 +223,10 @@ button.primary{
 
 <section id="stats" class="card" style="display:none">
   <div id="statsContent"></div>
-</section> 
+</section>
 
 </main>
+
 <script>
 const trades=JSON.parse(localStorage.getItem('trades')||'[]');
 
@@ -231,11 +247,11 @@ function judge(){
   const exe=document.querySelector('input[name="exe"]:checked');
   const box=document.getElementById('finalResult');
 
-  if(!h1){ box.innerHTML='❌ 見送り：1時間足条件未達'; box.className='result-box deny'; return; }
-  if(!h4){ box.innerHTML='❌ 見送り：4時間足が否定'; box.className='result-box deny'; return; }
-  if(!exe){ box.innerHTML='⚠ 執行足未選択'; return; }
+  if(!h1){ box.textContent='❌ 見送り：1時間足条件未達'; box.className='result-box deny'; return; }
+  if(!h4){ box.textContent='❌ 見送り：4時間足が否定'; box.className='result-box deny'; return; }
+  if(!exe){ box.textContent='⚠ 執行足未選択'; return; }
 
-  box.innerHTML=`✅ エントリー可｜執行足：${exe.value}分`;
+  box.textContent=`✅ エントリー可｜執行足：${exe.value}分`;
   box.className='result-box allow';
 }
 
@@ -259,60 +275,22 @@ function saveTrade(){
   alert('保存しました');
 }
 
-let current=new Date();
-function changeMonth(diff){
-  current.setMonth(current.getMonth()+diff);
-  renderCalendar();
-}
-function renderCalendar(){
-  const y=current.getFullYear();
-  const m=current.getMonth();
-  document.getElementById('currentMonth').textContent=`${y}年 ${m+1}月`;
-  const grid=document.getElementById('calendarGrid');
-  grid.innerHTML='';
-  let monthSum=0;
+/* ===== 見た目自動反映 ===== */
+function updateTradeVisual(){
+  side.classList.remove('side-buy','side-sell');
+  result.classList.remove('result-win','result-lose');
 
-  const days=new Date(y,m+1,0).getDate();
-  for(let d=1;d<=days;d++){
-    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTrades=trades.filter(t=>t.date===dateStr);
-    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
-    monthSum+=total;
-
-    const cell=document.createElement('div');
-    cell.style.padding='6px';
-    cell.style.borderRadius='8px';
-    cell.style.background='rgba(255,255,255,.05)';
-    cell.style.cursor='pointer';
-    cell.innerHTML=`<div>${d}</div><div style="font-size:12px">${total||''}</div>`;
-    cell.onclick=()=>showDayDetail(dateStr);
-    grid.appendChild(cell);
-  }
-  document.getElementById('monthTotal').textContent=`月合計：${monthSum.toLocaleString()} 円`;
+  if(side.value==='Buy') side.classList.add('side-buy');
+  if(side.value==='Sell') side.classList.add('side-sell');
+  if(result.value==='win') result.classList.add('result-win');
+  if(result.value==='lose') result.classList.add('result-lose');
 }
 
-function showDayDetail(date){
-  const box=document.getElementById('dayDetail');
-  const list=trades.filter(t=>t.date===date);
-  if(!list.length){ box.innerHTML=''; return; }
+updateTradeVisual();
+side.addEventListener('change',updateTradeVisual);
+result.addEventListener('change',updateTradeVisual);
 
-  box.innerHTML=`<h4>${date} 内訳</h4>`+
-    list.map((t,i)=>`
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span>${t.time} ${t.side} ${t.amount}</span>
-        <button onclick="deleteTrade(${i},'${date}')">削除</button>
-      </div>
-    `).join('');
-}
-
-function deleteTrade(idx,date){
-  const i=trades.findIndex((t,n)=>t.date===date && n>=idx);
-  trades.splice(i,1);
-  localStorage.setItem('trades',JSON.stringify(trades));
-  renderCalendar();
-  showDayDetail(date);
-}
-
+/* ===== タブ ===== */
 function switchTab(tabId){
   ['check','calendar','stats'].forEach(id=>{
     document.getElementById(id).style.display='none';
