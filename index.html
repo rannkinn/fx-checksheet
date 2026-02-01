@@ -239,15 +239,15 @@
       <label><input type="checkbox" class="h1" /><span>初動が出ている</span></label>
       <label>
         <input type="radio" name="h1Body" class="h1-normal" />
-        <span>初動で、実体が長すぎない（即エントリー可）</span>
+        <span>初動で、実体が長すぎない</span>
       </label>
       <label>
         <input type="radio" name="h1Body" class="h1-long" />
-        <span>初動だが実体がやや長い<br>→ 1時間足の指値（軽い戻し待ち）なら可</span>
+        <span>初動だが実体がやや長い</span>
       </label>
       <label><input type="checkbox" class="h1" /><span>MA乖離が大きすぎない</span></label>
       <label><input type="checkbox" class="h1" /><span>高値・安値掴みでない</span></label>
-      <label><input type="checkbox" class="h1" /><span>抵抗帯ど真ん中でない</span></label>
+      <label><input type="checkbox" class="h1" /><span>抵抗帯直近でない</span></label>
       <label><input type="checkbox" class="h1" /><span>「まだ伸びそう」と感じる形</span></label>
 
       <h3>ステップ②【4時間足】</h3>
@@ -479,12 +479,21 @@ function judge() {
     return;
   }
 
-  // --- 執行足未選択 ---
-  if (!exe) {
-    box.textContent = '⚠ 執行足未選択';
-    entryTypeEl.value = '';
-    return;
-  }
+　// ===== Bパターン（執行足は1時間固定）=====
+　if (h1Long) {
+  　entryTypeEl.value = 'limit';
+ 　 box.textContent =
+　    '🟡 Bパターン｜1時間足 指値（戻し待ち）';
+　  box.className = 'result-box allow';
+　  return;
+　}
+
+　// --- 執行足未選択（Aパターン専用） ---
+　if (!exe) {
+ 　 box.textContent = '⚠ 執行足未選択';
+　  entryTypeEl.value = '';
+　  return;
+　}
 
   // ===== Bパターン（ここが③の正体）=====
   if (h1Long) {
@@ -498,10 +507,12 @@ function judge() {
   // ===== Aパターン =====
   entryTypeEl.value = 'market';    // ★ これだけ
   box.textContent =
-    `✅ Aパターン｜成行エントリー｜執行足：${exe.value}分`;
+    const exeLabel = exe.value === '60' ? '1時間足' : '15分足';
+
+  box.textContent =
+    `✅ Aパターン｜成行エントリー｜執行足：${exeLabel}`;
   box.className = 'result-box allow';
 }
-
 
 /* =========================================================
    画像保存
