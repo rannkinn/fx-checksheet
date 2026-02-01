@@ -274,7 +274,59 @@ function saveTrade(){
   localStorage.setItem('trades',JSON.stringify(trades));
   alert('保存しました');
 }
+let current=new Date();
+function changeMonth(diff){
+  current.setMonth(current.getMonth()+diff);
+  renderCalendar();
+}
+function renderCalendar(){
+  const y=current.getFullYear();
+  const m=current.getMonth();
+  document.getElementById('currentMonth').textContent=`${y}年 ${m+1}月`;
+  const grid=document.getElementById('calendarGrid');
+  grid.innerHTML='';
+  let monthSum=0;
 
+  const days=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=days;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTrades=trades.filter(t=>t.date===dateStr);
+    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
+    monthSum+=total;
+
+    const cell=document.createElement('div');
+    cell.style.padding='6px';
+    cell.style.borderRadius='8px';
+    cell.style.background='rgba(255,255,255,.05)';
+    cell.style.cursor='pointer';
+    cell.innerHTML=`<div>${d}</div><div style="font-size:12px">${total||''}</div>`;
+    cell.onclick=()=>showDayDetail(dateStr);
+    grid.appendChild(cell);
+  }
+  document.getElementById('monthTotal').textContent=`月合計：${monthSum.toLocaleString()} 円`;
+}
+
+function showDayDetail(date){
+  const box=document.getElementById('dayDetail');
+  const list=trades.filter(t=>t.date===date);
+  if(!list.length){ box.innerHTML=''; return; }
+
+  box.innerHTML=`<h4>${date} 内訳</h4>`+
+    list.map((t,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>${t.time} ${t.side} ${t.amount}</span>
+        <button onclick="deleteTrade(${i},'${date}')">削除</button>
+      </div>
+    `).join('');
+}
+
+function deleteTrade(idx,date){
+  const i=trades.findIndex((t,n)=>t.date===date && n>=idx);
+  trades.splice(i,1);
+  localStorage.setItem('trades',JSON.stringify(trades));
+  renderCalendar();
+  showDayDetail(date);
+}
 /* ===== 見た目自動反映 ===== */
 function updateTradeVisual(){
   side.classList.remove('side-buy','side-sell');
