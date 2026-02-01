@@ -479,39 +479,41 @@ function judge() {
     return;
   }
 
-　// ===== Bパターン（執行足は1時間固定）=====
-　if (h1Long) {
-  　entryTypeEl.value = 'limit';
- 　 box.textContent =
-　    '🟡 Bパターン｜1時間足 指値（戻し待ち）';
-　  box.className = 'result-box allow';
-　  return;
-　}
+// ===== Bパターン（執行足は1時間固定）=====
+if (h1Long) {
+  entryTypeEl.value = 'limit';
 
-　// --- 執行足未選択（Aパターン専用） ---
-　if (!exe) {
- 　 box.textContent = '⚠ 執行足未選択';
-　  entryTypeEl.value = '';
-　  return;
-　}
-
-  // ===== Bパターン（ここが③の正体）=====
-  if (h1Long) {
-    entryTypeEl.value = 'limit';   // ★ これだけ
-    box.textContent =
-      `🟡 Bパターン｜1時間足 指値（戻し待ち）｜執行足：${exe.value}分`;
-    box.className = 'result-box allow';
-    return;
-  }
-
-  // ===== Aパターン =====
-  entryTypeEl.value = 'market';    // ★ これだけ
-  box.textContent =
-    const exeLabel = exe.value === '60' ? '1時間足' : '15分足';
+  // ★ 執行足ラジオを無効化
+  document
+    .querySelectorAll('input[name="exe"]')
+    .forEach(r => r.disabled = true);
 
   box.textContent =
-    `✅ Aパターン｜成行エントリー｜執行足：${exeLabel}`;
+    '🟡 Bパターン｜1時間足 指値（戻し待ち）';
   box.className = 'result-box allow';
+  return;
+}
+
+
+// --- 執行足未選択（Aパターン専用） ---
+document
+  .querySelectorAll('input[name="exe"]')
+  .forEach(r => r.disabled = false);
+
+if (!exe) {
+  box.textContent = '⚠ 執行足未選択';
+  entryTypeEl.value = '';
+  return;
+}
+
+
+// ===== Aパターン =====
+entryTypeEl.value = 'market';
+const exeLabel = exe.value === '60' ? '1時間足' : '15分足';
+
+box.textContent =
+  `✅ Aパターン｜成行エントリー｜執行足：${exeLabel}`;
+box.className = 'result-box allow';
 }
 
 /* =========================================================
