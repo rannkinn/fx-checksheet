@@ -354,11 +354,71 @@ function switchTab(tabId){
   document.getElementById(map[tabId]).classList.add('active');
 
   if(tabId==='calendar') renderCalendar();
+  if(tabId==='stats') renderStats();
 }
+
 
 document.getElementById('tab-check').onclick=()=>switchTab('check');
 document.getElementById('tab-calendar').onclick=()=>switchTab('calendar');
 document.getElementById('tab-stats').onclick=()=>switchTab('stats');
+
+function renderStats(){
+  const box = document.getElementById('statsContent');
+  if(!trades.length){
+    box.innerHTML = 'データがありません';
+    return;
+  }
+
+  // 月ごとにグループ化
+  const monthly = {};
+  trades.forEach(t=>{
+    const key = t.date.slice(0,7); // YYYY-MM
+    if(!monthly[key]) monthly[key]=[];
+    monthly[key].push(t);
+  });
+
+  box.innerHTML = Object.entries(monthly).map(([month,list])=>{
+    const wins = list.filter(t=>t.amount>0);
+    const loses = list.filter(t=>t.amount<0);
+
+    const winCount = wins.length;
+    const loseCount = loses.length;
+    const total = list.length;
+
+    const winRate = total ? (winCount/total*100).toFixed(1) : 0;
+
+    const totalWin = wins.reduce((a,b)=>a+b.amount,0);
+    const totalLose = Math.abs(loses.reduce((a,b)=>a+b.amount,0));
+
+    const avgWin = winCount ? totalWin/winCount : 0;
+    const avgLose = loseCount ? totalLose/loseCount : 0;
+
+    const rr = avgLose ? (avgWin/avgLose).toFixed(2) : '-';
+    const pf = totalLose ? (totalWin/totalLose).toFixed(2) : '-';
+
+    // 最大ドローダウン
+    let peak = 0;
+    let equity = 0;
+    let maxDD = 0;
+    list.forEach(t=>{
+      equity += t.amount;
+      if(equity > peak) peak = equity;
+      maxDD = Math.min(maxDD, equity - peak);
+    });
+
+    return `
+      <div style="margin-bottom:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.06)">
+        <strong>${month}</strong><br>
+        勝率：${winRate}%<br>
+        勝敗数：${winCount}勝 / ${loseCount}敗<br>
+        RR：${rr}<br>
+        PF：${pf}<br>
+        最大DD：${maxDD.toLocaleString()} 円
+      </div>
+    `;
+  }).join('');
+}
+
 </script>
 
 </body>
