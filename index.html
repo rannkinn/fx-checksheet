@@ -1,341 +1,505 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>USDJPY Trade Journal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USDJPY Trade Journal</title>
 
-<style>
-:root{
-  --bg:#0f1220;
-  --card:#1b1f3b;
-  --row:#20255a;
-  --border:rgba(255,255,255,.12);
-  --accent:#4f7cff;
-  --text:#e6e8ff;
-  --muted:#9aa0d1;
-  --win:#4f7cff;
-  --lose:#f44336;
-}
+  <style>
+    /* ===============================
+       Theme Variables
+    =============================== */
+    :root {
+      --bg: #0f1220;
+      --card: #1b1f3b;
+      --row: #20255a;
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #4f7cff;
+      --text: #e6e8ff;
+      --muted: #9aa0d1;
+      --win: #4f7cff;
+      --lose: #f44336;
+    }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+    /* ===============================
+       Base
+    =============================== */
+    * {
+      box-sizing: border-box;
+    }
 
-header{
-  padding:16px;
-  text-align:center;
-  font-size:20px;
-  font-weight:600;
-}
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-nav{
-  display:flex;
-  gap:8px;
-  padding:8px;
-  justify-content:center;
-}
+    header {
+      padding: 16px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+    }
 
-nav button{
-  flex:1;
-  background:linear-gradient(#22286a,#1b1f3b);
-  color:var(--text);
-  border:none;
-  padding:10px;
-  border-radius:10px;
-  font-size:14px;
-}
-nav button.active{
-  background:linear-gradient(#4f7cff,#375bd6);
-  color:white;
-}
+    main {
+      padding: 16px;
+    }
 
-main{padding:16px}
+    /* ===============================
+       Navigation
+    =============================== */
+    nav {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      justify-content: center;
+    }
 
-.card{
-  background:linear-gradient(180deg,#1b1f3b,#14183a);
-  border-radius:16px;
-  padding:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
-}
+    nav button {
+      flex: 1;
+      background: linear-gradient(#22286a, #1b1f3b);
+      color: var(--text);
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
 
-h3{
-  margin:12px 0 6px;
-  font-size:14px;
-  color:var(--muted);
-}
+    nav button.active {
+      background: linear-gradient(#4f7cff, #375bd6);
+      color: #fff;
+    }
 
-/* チェック行 */
-label{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:10px 12px;
-  background:var(--row);
-  border-bottom:1px solid var(--border);
-  font-size:14px;
-  cursor:pointer;
-}
-label:last-of-type{border-bottom:none}
-label input{width:18px;height:18px;flex-shrink:0}
-label span{flex:1}
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+      }
+    }
 
-/* 入力共通 */
-input,select,textarea{
-  width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:10px;
-  border:none;
-  background:#121533;
-  color:var(--text);
-}
+    /* ===============================
+       Card
+    =============================== */
+    .card {
+      background: linear-gradient(180deg, #1b1f3b, #14183a);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
 
-textarea{height:60px}
+    h3 {
+      margin: 12px 0 6px;
+      font-size: 14px;
+      color: var(--muted);
+    }
 
-/* 判定表示 */
-.result-box{
-  margin:14px 0;
-  padding:12px;
-  text-align:center;
-  border-radius:12px;
-  background:rgba(255,255,255,.08);
-  font-weight:600;
-}
-.allow{color:var(--win)}
-.deny{color:var(--lose)}
+    /* ===============================
+       Checklist
+    =============================== */
+    label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--row);
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      cursor: pointer;
+    }
 
-button.primary{
-  margin-top:8px;
-  width:100%;
-  padding:14px;
-  background:linear-gradient(#4f7cff,#375bd6);
-  border:none;
-  border-radius:14px;
-  color:white;
-  font-size:16px;
-}
+    label:last-of-type {
+      border-bottom: none;
+    }
 
-/* ===== トレード記録 横並び ===== */
-.trade-row{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:8px;
-  margin-bottom:10px;
-}
+    label input {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
 
-.trade-row-3{
-  grid-template-columns: 1fr 1fr 1fr;
-}
+    label span {
+      flex: 1;
+    }
 
-.trade-row input,
-.trade-row select{
-  margin-bottom:0;
-}
+    /* ===============================
+       Inputs
+    =============================== */
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #121533;
+      color: var(--text);
+    }
 
+    textarea {
+      height: 60px;
+    }
 
-/* 勝ち負け色 */
-.result-win{color:var(--win);font-weight:600}
-.result-lose{color:var(--lose);font-weight:600}
+    /* ===============================
+       Result Box
+    =============================== */
+    .result-box {
+      margin: 14px 0;
+      padding: 12px;
+      text-align: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+    }
 
-/* 売買アイコン */
-.side-buy::before{
-  content:"↑ ";
-  color:var(--win);
-  font-weight:700;
-}
-.side-sell::before{
-  content:"↓ ";
-  color:var(--lose);
-  font-weight:700;
-}
+    .allow {
+      color: var(--win);
+    }
 
-@media(max-width:600px){
-  nav{flex-direction:column}
-}
-</style>
+    .deny {
+      color: var(--lose);
+    }
+
+    /* ===============================
+       Buttons
+    =============================== */
+    button.primary {
+      margin-top: 8px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(#4f7cff, #375bd6);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    /* ===============================
+       Trade Rows
+    =============================== */
+    .trade-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .trade-row-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .trade-row input,
+    .trade-row select {
+      margin-bottom: 0;
+    }
+
+    /* ===============================
+       Trade Visuals
+    =============================== */
+    .result-win {
+      color: var(--win);
+      font-weight: 600;
+    }
+
+    .result-lose {
+      color: var(--lose);
+      font-weight: 600;
+    }
+
+    .side-buy::before {
+      content: "↑ ";
+      color: var(--win);
+      font-weight: 700;
+    }
+
+    .side-sell::before {
+      content: "↓ ";
+      color: var(--lose);
+      font-weight: 700;
+    }
+  </style>
 </head>
 
 <body>
-<header>USDJPY トレード管理</header>
+  <header>USDJPY トレード管理</header>
 
-<nav>
-  <button id="tab-check" class="active">🧠 チェック</button>
-  <button id="tab-calendar">📅 カレンダー</button>
-  <button id="tab-stats">📊 集計</button>
-</nav>
+  <nav>
+    <button id="tab-check" class="active">🧠 チェック</button>
+    <button id="tab-calendar">📅 カレンダー</button>
+    <button id="tab-stats">📊 集計</button>
+  </nav>
 
-<main>
+  <main>
+    <!-- ===============================
+         CHECK TAB
+    =============================== -->
+    <section id="check" class="card">
+      <h3>ステップ①【1時間足】（全てYES）</h3>
+      <label><input type="checkbox" class="h1" /><span>初動が出ている</span></label>
+      <label><input type="checkbox" class="h1" /><span>初動で伸びきっていない</span></label>
+      <label><input type="checkbox" class="h1" /><span>MA乖離が大きすぎない</span></label>
+      <label><input type="checkbox" class="h1" /><span>高値・安値掴みでない</span></label>
+      <label><input type="checkbox" class="h1" /><span>抵抗帯ど真ん中でない</span></label>
+      <label><input type="checkbox" class="h1" /><span>「まだ伸びそう」と感じる形</span></label>
 
-<section id="check" class="card">
+      <h3>ステップ②【4時間足】</h3>
+      <label><input type="checkbox" class="h4" /><span>明確な方向がある</span></label>
+      <label><input type="checkbox" class="h4" /><span>頂点・底付近でない</span></label>
+      <label><input type="checkbox" class="h4" /><span>TR的に余力あり</span></label>
+      <label><input type="checkbox" class="h4" /><span>強い否定ヒゲなし</span></label>
+      <label><input type="checkbox" class="h4" /><span>ボリバン形状が1Hと整合</span></label>
 
-<h3>ステップ①【1時間足】（全てYES）</h3>
-<label><input type="checkbox" class="h1"><span>初動が出ている</span></label>
-<label><input type="checkbox" class="h1"><span>初動で伸びきっていない</span></label>
-<label><input type="checkbox" class="h1"><span>MA乖離が大きすぎない</span></label>
-<label><input type="checkbox" class="h1"><span>高値・安値掴みでない</span></label>
-<label><input type="checkbox" class="h1"><span>抵抗帯ど真ん中でない</span></label>
-<label><input type="checkbox" class="h1"><span>「まだ伸びそう」と感じる形</span></label>
+      <h3>ステップ③【執行足判定】</h3>
+      <label><input type="radio" name="exe" value="15" /><span>15分も初動で良い</span></label>
+      <label><input type="radio" name="exe" value="60" /><span>15分が微妙 → 1時間執行</span></label>
 
-<h3>ステップ②【4時間足】</h3>
-<label><input type="checkbox" class="h4"><span>明確な方向がある</span></label>
-<label><input type="checkbox" class="h4"><span>頂点・底付近でない</span></label>
-<label><input type="checkbox" class="h4"><span>TR的に余力あり</span></label>
-<label><input type="checkbox" class="h4"><span>強い否定ヒゲなし</span></label>
-<label><input type="checkbox" class="h4"><span>ボリバン形状が1Hと整合</span></label>
+      <div id="finalResult" class="result-box">未判定</div>
 
-<h3>ステップ③【執行足判定】</h3>
-<label><input type="radio" name="exe" value="15"><span>15分も初動で良い</span></label>
-<label><input type="radio" name="exe" value="60"><span>15分が微妙 → 1時間執行</span></label>
+      <h3>トレード記録</h3>
 
-<div id="finalResult" class="result-box">未判定</div>
+      <div class="trade-row">
+        <input type="date" id="date" />
+        <input type="time" id="time" />
+      </div>
 
-<h3>トレード記録</h3>
+      <div class="trade-row trade-row-3">
+        <select id="result">
+          <option value="win">勝ち</option>
+          <option value="lose">負け</option>
+        </select>
 
-<!-- 1段目：日付 / 時間 -->
-<div class="trade-row">
-  <input type="date" id="date">
-  <input type="time" id="time">
-</div>
+        <select id="side">
+          <option value="Buy">買い</option>
+          <option value="Sell">売り</option>
+        </select>
 
-<!-- 2段目：勝敗 / 買売 / 決済理由 -->
-<div class="trade-row trade-row-3">
-  <select id="result">
-    <option value="win">勝ち</option>
-    <option value="lose">負け</option>
-  </select>
+        <select id="exitReason">
+          <option value="">決済理由</option>
+          <option value="TP">TP到達</option>
+          <option value="SL">SL到達</option>
+          <option value="TIME">時間切り</option>
+        </select>
+      </div>
 
-  <select id="side">
-    <option value="Buy">買い</option>
-    <option value="Sell">売り</option>
-  </select>
+      <input type="number" id="lot" placeholder="ロット数" />
+      <input type="number" id="amount" placeholder="損益（円）" />
+      <input type="number" id="pips" placeholder="pips（自動）" disabled />
+      <textarea id="comment" placeholder="コメント"></textarea>
 
-  <select id="exitReason">
-    <option value="">決済理由</option>
-    <option value="TP">TP到達</option>
-    <option value="SL">SL到達</option>
-    <option value="TIME">時間切り</option>
-  </select>
-</div>
+      <input type="file" id="tradeImage" accept="image/*" />
+      <img
+        id="previewImage"
+        style="display: none; max-width: 100%; border-radius: 8px; margin-bottom: 10px"
+      />
 
+      <button class="primary" onclick="saveTrade()">保存</button>
+    </section>
 
-<input type="number" id="lot" placeholder="ロット数">
-<input type="number" id="amount" placeholder="損益（円）">
-<input type="number" id="pips" placeholder="pips（自動）" disabled>
-<textarea id="comment" placeholder="コメント"></textarea>
-<input type="file" id="tradeImage" accept="image/*">
-<img id="previewImage" style="display:none;max-width:100%;border-radius:8px;margin-bottom:10px">
+    <!-- ===============================
+         CALENDAR TAB
+    =============================== -->
+    <section id="calendar" class="card" style="display: none">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px"
+      >
+        <button onclick="changeMonth(-1)">←</button>
+        <div id="currentMonth"></div>
+        <button onclick="changeMonth(1)">→</button>
+      </div>
 
-  
-<button class="primary" onclick="saveTrade()">保存</button>
-</section>
+      <button style="margin-bottom: 12px" onclick="cleanupImagesForCurrentMonth()">
+        🧹 表示中の月より前の画像を削除
+      </button>
 
-<section id="calendar" class="card" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <button onclick="changeMonth(-1)">←</button>
-    <div id="currentMonth"></div>
-    <button onclick="changeMonth(1)">→</button>
-  </div>
-  <div id="monthTotal" style="margin-bottom:10px;font-weight:600"></div>
-  <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
-  <div id="dayDetail" style="margin-top:14px"></div>
-</section>
+      <div id="imageUsage" style="margin-bottom: 10px; font-size: 13px; color: #9aa0d1">
+        画像使用量：計算中…
+      </div>
 
-<section id="stats" class="card" style="display:none">
-  <div id="statsContent"></div>
-</section>
+      <div id="monthTotal" style="margin-bottom: 10px; font-weight: 600"></div>
+      <div
+        id="calendarGrid"
+        style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px"
+      ></div>
+      <div id="dayDetail" style="margin-top: 14px"></div>
+    </section>
 
-</main>
+    <!-- ===============================
+         STATS TAB
+    =============================== -->
+    <section id="stats" class="card" style="display: none">
+      <div id="statsContent"></div>
+    </section>
+  </main>
 
 <script>
-const trades=JSON.parse(localStorage.getItem('trades')||'[]');
+/* =========================================================
+   IndexedDB 初期化
+========================================================= */
+let imgDB;
 
-const date=document.getElementById('date');
-const time=document.getElementById('time');
-const side=document.getElementById('side');
-const result=document.getElementById('result');
+const dbReq = indexedDB.open('tradeImageDB', 1);
+
+dbReq.onupgradeneeded = (e) => {
+  e.target.result.createObjectStore('images', { keyPath: 'id' });
+};
+
+dbReq.onsuccess = (e) => {
+  imgDB = e.target.result;
+};
+
+
+/* =========================================================
+   データ & DOM参照
+========================================================= */
+const trades = JSON.parse(localStorage.getItem('trades') || '[]');
+
+const date         = document.getElementById('date');
+const time         = document.getElementById('time');
+const side         = document.getElementById('side');
+const result       = document.getElementById('result');
 const exitReasonEl = document.getElementById('exitReason');
-const lotEl=document.getElementById('lot');
-const amountEl=document.getElementById('amount');
-const pipsEl=document.getElementById('pips');
-const comment=document.getElementById('comment');
-const tradeImage = document.getElementById('tradeImage');
+const lotEl        = document.getElementById('lot');
+const amountEl     = document.getElementById('amount');
+const pipsEl       = document.getElementById('pips');
+const comment      = document.getElementById('comment');
+const tradeImage   = document.getElementById('tradeImage');
 const previewImage = document.getElementById('previewImage');
-  
-document.querySelectorAll('input').forEach(i=>i.onchange=judge);
 
+document
+  .querySelectorAll('input[type=checkbox], input[type=radio]')
+  .forEach((i) => (i.onchange = judge));
+
+
+/* =========================================================
+   画像アップロード & 圧縮
+========================================================= */
 let imageData = null;
 
-tradeImage.addEventListener('change',()=>{
+tradeImage.addEventListener('change', () => {
   const file = tradeImage.files[0];
-  if(!file) return;
+  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = e=>{
-    imageData = e.target.result;
-    previewImage.src = imageData;
-    previewImage.style.display = 'block';
+  const img = new Image();
+
+  img.onload = () => {
+    const MAX_W = 900;
+    const scale = Math.min(1, MAX_W / img.width);
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = img.width  * scale;
+    canvas.height = img.height * scale;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => {
+        imageData = blob;
+        previewImage.src = URL.createObjectURL(blob);
+        previewImage.style.display = 'block';
+      },
+      'image/jpeg',
+      0.7
+    );
   };
-  reader.readAsDataURL(file);
+
+  img.src = URL.createObjectURL(file);
 });
 
-  
-function judge(){
-  const h1=[...document.querySelectorAll('.h1')].every(c=>c.checked);
-  const h4=[...document.querySelectorAll('.h4')].every(c=>c.checked);
-  const exe=document.querySelector('input[name="exe"]:checked');
-  const box=document.getElementById('finalResult');
 
-  if(!h1){ box.textContent='❌ 見送り：1時間足条件未達'; box.className='result-box deny'; return; }
-  if(!h4){ box.textContent='❌ 見送り：4時間足が否定'; box.className='result-box deny'; return; }
-  if(!exe){ box.textContent='⚠ 執行足未選択'; return; }
+/* =========================================================
+   エントリー判定
+========================================================= */
+function judge() {
+  const h1  = [...document.querySelectorAll('.h1')].every((c) => c.checked);
+  const h4  = [...document.querySelectorAll('.h4')].every((c) => c.checked);
+  const exe = document.querySelector('input[name="exe"]:checked');
+  const box = document.getElementById('finalResult');
 
-  box.textContent=`✅ エントリー可｜執行足：${exe.value}分`;
-  box.className='result-box allow';
+  if (!h1) {
+    box.textContent = '❌ 見送り：1時間足条件未達';
+    box.className = 'result-box deny';
+    return;
+  }
+
+  if (!h4) {
+    box.textContent = '❌ 見送り：4時間足が否定';
+    box.className = 'result-box deny';
+    return;
+  }
+
+  if (!exe) {
+    box.textContent = '⚠ 執行足未選択';
+    return;
+  }
+
+  box.textContent = `✅ エントリー可｜執行足：${exe.value}分`;
+  box.className = 'result-box allow';
 }
 
-function saveTrade(){
-    if(!date.value){
+
+/* =========================================================
+   画像保存
+========================================================= */
+function saveImageToDB(blob) {
+  return new Promise((resolve) => {
+    const id = 'img_' + Date.now();
+    const tx = imgDB.transaction('images', 'readwrite');
+    tx.objectStore('images').put({ id, blob });
+    tx.oncomplete = () => resolve(id);
+  });
+}
+
+
+/* =========================================================
+   トレード保存
+========================================================= */
+async function saveTrade() {
+  if (!imgDB) {
+    alert('画像DBの準備中です。少し待ってください');
+    return;
+  }
+
+  if (!date.value) {
     alert('日付を入力してください');
     return;
   }
-  if(!exitReasonEl.value){
-  alert('決済理由を選択してください');
-  return;
-}
 
-// 論理的におかしい組み合わせを防ぐ（任意だが超おすすめ）
-if(result.value === 'win' && exitReasonEl.value === 'SL'){
-  alert('勝ちでSL到達は選択できません');
-  return;
-}
+  if (!exitReasonEl.value) {
+    alert('決済理由を選択してください');
+    return;
+  }
 
-  const lot = Number(lotEl.value);
-  const amt = Number(amountEl.value);
+  if (result.value === 'win' && exitReasonEl.value === 'SL') {
+    alert('勝ちでSL到達は選択できません');
+    return;
+  }
+
+  const lot  = Number(lotEl.value);
+  const amt  = Number(amountEl.value);
   const pips = amt / (lot * 1000);
   pipsEl.value = pips.toFixed(1);
 
-trades.push({
-  date: date.value,
-  time: time.value,
-  side: side.value,
-  result: result.value,
-  lot,
-  amount: amt,
-  pips,
-  comment: comment.value,
-  image: imageData,
-  exitReason: exitReasonEl.value
-});
+  let imageId = null;
+  if (imageData) {
+    imageId = await saveImageToDB(imageData);
+  }
+
+  trades.push({
+    date: date.value,
+    time: time.value,
+    side: side.value,
+    result: result.value,
+    lot,
+    amount: amt,
+    pips,
+    comment: comment.value,
+    exitReason: exitReasonEl.value,
+    imageId,
+  });
 
   localStorage.setItem('trades', JSON.stringify(trades));
-  exitReasonEl.value = '';
-  
-　 // ★ これらは「オブジェクトの外」で実行する
+
   tradeImage.value = '';
   previewImage.style.display = 'none';
   imageData = null;
@@ -343,174 +507,325 @@ trades.push({
   alert('保存しました');
 }
 
-let current=new Date();
-function changeMonth(diff){
-  current.setMonth(current.getMonth()+diff);
+
+/* =========================================================
+   カレンダー
+========================================================= */
+let current = new Date();
+
+function changeMonth(diff) {
+  current.setMonth(current.getMonth() + diff);
   renderCalendar();
 }
-function renderCalendar(){
-  const y=current.getFullYear();
-  const m=current.getMonth();
-  document.getElementById('currentMonth').textContent=`${y}年 ${m+1}月`;
-  const grid=document.getElementById('calendarGrid');
-  grid.innerHTML='';
-  let monthSum=0;
 
-  const days=new Date(y,m+1,0).getDate();
-  for(let d=1;d<=days;d++){
-    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTrades=trades.filter(t=>t.date===dateStr);
-    const total=dayTrades.reduce((a,b)=>a+b.amount,0);
-    monthSum+=total;
+function renderCalendar() {
+  const y = current.getFullYear();
+  const m = current.getMonth();
 
-    const cell=document.createElement('div');
-    cell.style.padding='6px';
-    cell.style.borderRadius='8px';
-    cell.style.background='rgba(255,255,255,.05)';
-    cell.style.cursor='pointer';
-    cell.innerHTML=`<div>${d}</div><div style="font-size:12px">${total||''}</div>`;
-    cell.onclick=()=>showDayDetail(dateStr);
+  document.getElementById('currentMonth').textContent = `${y}年 ${m + 1}月`;
+
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  let monthSum = 0;
+  const days = new Date(y, m + 1, 0).getDate();
+
+  for (let d = 1; d <= days; d++) {
+    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayTrades = trades.filter((t) => t.date === dateStr);
+    const total = dayTrades.reduce((a, b) => a + b.amount, 0);
+
+    monthSum += total;
+
+    const cell = document.createElement('div');
+    cell.style.padding = '6px';
+    cell.style.borderRadius = '8px';
+    cell.style.background = 'rgba(255,255,255,.05)';
+    cell.style.cursor = 'pointer';
+    cell.innerHTML = `<div>${d}</div><div style="font-size:12px">${total || ''}</div>`;
+    cell.onclick = () => showDayDetail(dateStr);
+
     grid.appendChild(cell);
   }
-  document.getElementById('monthTotal').textContent=`月合計：${monthSum.toLocaleString()} 円`;
+
+  document.getElementById('monthTotal').textContent =
+    `月合計：${monthSum.toLocaleString()} 円`;
 }
 
-function showDayDetail(date){
-  const box=document.getElementById('dayDetail');
-  const list=trades.filter(t=>t.date===date);
-  if(!list.length){ box.innerHTML=''; return; }
 
-  box.innerHTML=`<h4>${date} 内訳</h4>`+
-    list.map((t,i)=>`
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span>
-          ${t.time} ${t.side} ${t.amount}
-          (${t.exitReason || '理由不明'})
-        </span>
-　　　　　${t.image ? `
-  <img src="${t.image}"
-       style="width:100px;border-radius:6px;cursor:pointer"
-       onclick="openImage(this.src)">
-` : ''}
+/* =========================================================
+   日別詳細
+========================================================= */
+function showDayDetail(date) {
+  const box = document.getElementById('dayDetail');
+  const list = trades.filter((t) => t.date === date);
 
+  if (!list.length) {
+    box.innerHTML = '';
+    return;
+  }
 
-        <button onclick="deleteTrade(${i},'${date}')">削除</button>
-      </div>
-    `).join('');
+  box.innerHTML =
+    `<h4>${date} 内訳</h4>` +
+    list
+      .map(
+        (t, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>
+            ${t.time} ${t.side} ${t.amount}
+            (${t.exitReason || '理由不明'})
+          </span>
+          <span>
+            ${
+              t.imageId
+                ? `<img style="width:100px;border-radius:6px;cursor:pointer"
+                       onclick="openDBImage('${t.imageId}')">`
+                : ''
+            }
+            <button onclick="deleteTrade(${i}, '${date}')">削除</button>
+          </span>
+        </div>
+      `
+      )
+      .join('');
 }
 
-function deleteTrade(idx,date){
-  const i=trades.findIndex((t,n)=>t.date===date && n>=idx);
-  trades.splice(i,1);
-  localStorage.setItem('trades',JSON.stringify(trades));
+
+/* =========================================================
+   トレード削除
+========================================================= */
+function deleteTrade(idx, date) {
+  const i = trades.findIndex((t, n) => t.date === date && n >= idx);
+  const trade = trades[i];
+
+  if (trade?.imageId) {
+    const tx = imgDB.transaction('images', 'readwrite');
+    tx.objectStore('images').delete(trade.imageId);
+  }
+
+  trades.splice(i, 1);
+  localStorage.setItem('trades', JSON.stringify(trades));
+
   renderCalendar();
   showDayDetail(date);
+  updateImageUsage();
 }
-/* ===== 見た目自動反映 ===== */
-function updateTradeVisual(){
-  side.classList.remove('side-buy','side-sell');
-  result.classList.remove('result-win','result-lose');
 
-  if(side.value==='Buy') side.classList.add('side-buy');
-  if(side.value==='Sell') side.classList.add('side-sell');
-  if(result.value==='win') result.classList.add('result-win');
-  if(result.value==='lose') result.classList.add('result-lose');
+
+/* =========================================================
+   見た目自動反映
+========================================================= */
+function updateTradeVisual() {
+  side.classList.remove('side-buy', 'side-sell');
+  result.classList.remove('result-win', 'result-lose');
+
+  if (side.value === 'Buy')  side.classList.add('side-buy');
+  if (side.value === 'Sell') side.classList.add('side-sell');
+  if (result.value === 'win')  result.classList.add('result-win');
+  if (result.value === 'lose') result.classList.add('result-lose');
 }
 
 updateTradeVisual();
-side.addEventListener('change',updateTradeVisual);
-result.addEventListener('change',updateTradeVisual);
-result.addEventListener('change', ()=>{
-  [...exitReasonEl.options].forEach(opt=>{
+side.addEventListener('change', updateTradeVisual);
+result.addEventListener('change', updateTradeVisual);
+
+result.addEventListener('change', () => {
+  [...exitReasonEl.options].forEach((opt) => {
     opt.disabled = result.value === 'win' && opt.value === 'SL';
   });
 });
 
-  
-/* ===== タブ ===== */
-function switchTab(tabId){
-  ['check','calendar','stats'].forEach(id=>{
-    document.getElementById(id).style.display='none';
-  });
-  document.getElementById(tabId).style.display='block';
 
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  const map={check:'tab-check',calendar:'tab-calendar',stats:'tab-stats'};
+/* =========================================================
+   タブ切り替え
+========================================================= */
+function switchTab(tabId) {
+  ['check', 'calendar', 'stats'].forEach((id) => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  document.getElementById(tabId).style.display = 'block';
+
+  document.querySelectorAll('nav button').forEach((b) =>
+    b.classList.remove('active')
+  );
+
+  const map = {
+    check: 'tab-check',
+    calendar: 'tab-calendar',
+    stats: 'tab-stats',
+  };
+
   document.getElementById(map[tabId]).classList.add('active');
 
-  if(tabId==='calendar') renderCalendar();
-  if(tabId==='stats') renderStats();
+  if (tabId === 'calendar') {
+    renderCalendar();
+    updateImageUsage();
+  }
+
+  if (tabId === 'stats') {
+    renderStats();
+  }
 }
 
+document.getElementById('tab-check').onclick    = () => switchTab('check');
+document.getElementById('tab-calendar').onclick = () => switchTab('calendar');
+document.getElementById('tab-stats').onclick    = () => switchTab('stats');
 
-document.getElementById('tab-check').onclick=()=>switchTab('check');
-document.getElementById('tab-calendar').onclick=()=>switchTab('calendar');
-document.getElementById('tab-stats').onclick=()=>switchTab('stats');
 
-function renderStats(){
+/* =========================================================
+   集計
+========================================================= */
+function renderStats() {
   const box = document.getElementById('statsContent');
-  if(!trades.length){
+  if (!trades.length) {
     box.innerHTML = 'データがありません';
     return;
   }
 
-  // 月ごとにグループ化
   const monthly = {};
-  trades.forEach(t=>{
-  if(!t.date || t.date.length < 7) return; // ★ 不正データ除外
 
-  const key = t.date.slice(0,7); // YYYY-MM
-  if(!monthly[key]) monthly[key] = [];
-  monthly[key].push(t);
-});
+  trades.forEach((t) => {
+    if (!t.date || t.date.length < 7) return;
+    const key = t.date.slice(0, 7);
+    if (!monthly[key]) monthly[key] = [];
+    monthly[key].push(t);
+  });
 
-  box.innerHTML = Object.entries(monthly).map(([month,list])=>{
-    const wins = list.filter(t=>t.amount>0);
-    const loses = list.filter(t=>t.amount<0);
+  box.innerHTML = Object.entries(monthly)
+    .map(([month, list]) => {
+      const wins  = list.filter((t) => t.amount > 0);
+      const loses = list.filter((t) => t.amount < 0);
 
-    const winCount = wins.length;
-    const loseCount = loses.length;
-    const total = list.length;
+      const total = list.length;
+      const winRate = total ? ((wins.length / total) * 100).toFixed(1) : 0;
 
-    const winRate = total ? (winCount/total*100).toFixed(1) : 0;
+      const totalWin  = wins.reduce((a, b) => a + b.amount, 0);
+      const totalLose = Math.abs(loses.reduce((a, b) => a + b.amount, 0));
 
-    const totalWin = wins.reduce((a,b)=>a+b.amount,0);
-    const totalLose = Math.abs(loses.reduce((a,b)=>a+b.amount,0));
+      const avgWin  = wins.length  ? totalWin / wins.length  : 0;
+      const avgLose = loses.length ? totalLose / loses.length : 0;
 
-    const avgWin = winCount ? totalWin/winCount : 0;
-    const avgLose = loseCount ? totalLose/loseCount : 0;
+      const rr = avgLose ? (avgWin / avgLose).toFixed(2) : '-';
+      const pf = totalLose ? (totalWin / totalLose).toFixed(2) : '-';
 
-    const rr = avgLose ? (avgWin/avgLose).toFixed(2) : '-';
-    const pf = totalLose ? (totalWin/totalLose).toFixed(2) : '-';
+      let peak = 0;
+      let equity = 0;
+      let maxDD = 0;
 
-    // 最大ドローダウン
-    let peak = 0;
-    let equity = 0;
-    let maxDD = 0;
-    list.forEach(t=>{
-      equity += t.amount;
-      if(equity > peak) peak = equity;
-      maxDD = Math.min(maxDD, equity - peak);
-    });
+      list.forEach((t) => {
+        equity += t.amount;
+        if (equity > peak) peak = equity;
+        maxDD = Math.min(maxDD, equity - peak);
+      });
 
-    return `
-      <div style="margin-bottom:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.06)">
-        <strong>${month}</strong><br>
-        勝率：${winRate}%<br>
-        勝敗数：${winCount}勝 / ${loseCount}敗<br>
-        RR：${rr}<br>
-        PF：${pf}<br>
-        最大DD：${maxDD.toLocaleString()} 円
-      </div>
-    `;
-  }).join('');
+      return `
+        <div style="margin-bottom:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.06)">
+          <strong>${month}</strong><br>
+          勝率：${winRate}%<br>
+          勝敗数：${wins.length}勝 / ${loses.length}敗<br>
+          RR：${rr}<br>
+          PF：${pf}<br>
+          最大DD：${maxDD.toLocaleString()} 円
+        </div>
+      `;
+    })
+    .join('');
 }
 
-function openImage(src){
-  const w = window.open();
-  w.document.write(`<img src="${src}" style="max-width:100%">`);
+
+/* =========================================================
+   画像表示 & 使用量
+========================================================= */
+function openDBImage(id) {
+  const tx = imgDB.transaction('images', 'readonly');
+  const req = tx.objectStore('images').get(id);
+
+  req.onsuccess = () => {
+    if (!req.result) {
+      alert('この画像はすでに削除されています');
+      return;
+    }
+    const url = URL.createObjectURL(req.result.blob);
+    const w = window.open();
+    w.document.write(`<img src="${url}" style="max-width:100%">`);
+  };
 }
 
+function updateImageUsage() {
+  if (!imgDB) return;
+
+  let totalBytes = 0;
+  const tx = imgDB.transaction('images', 'readonly');
+  const store = tx.objectStore('images');
+
+  store.openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (!cursor) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(2);
+      document.getElementById('imageUsage').textContent =
+        `画像使用量：${mb} MB`;
+      return;
+    }
+    totalBytes += cursor.value.blob.size;
+    cursor.continue();
+  };
+}
+
+
+/* =========================================================
+   月次画像整理
+========================================================= */
+function cleanupImagesForCurrentMonth() {
+  if (!imgDB) {
+    alert('画像DBの準備中です。少し待ってください');
+    return;
+  }
+
+  const now = new Date();
+  const currentMonthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (currentMonthStart > thisMonthStart) {
+    alert('未来の月は整理できません');
+    return;
+  }
+
+  const year  = current.getFullYear();
+  const month = current.getMonth() + 1;
+
+  if (!confirm(`${year}年${month}月より前の画像をすべて削除します`)) return;
+
+  deleteImagesBeforeMonth(year, month);
+}
+
+function deleteImagesBeforeMonth(year, month) {
+  const borderTime = new Date(year, month - 1, 1).getTime();
+
+  const tx = imgDB.transaction('images', 'readwrite');
+  const store = tx.objectStore('images');
+
+  store.openCursor().onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (!cursor) return;
+
+    const ts = Number(cursor.key.split('_')[1]);
+    if (ts < borderTime) {
+      const id = cursor.key;
+      store.delete(id);
+      trades.forEach((t) => {
+        if (t.imageId === id) delete t.imageId;
+      });
+    }
+    cursor.continue();
+  };
+
+  tx.oncomplete = () => {
+    localStorage.setItem('trades', JSON.stringify(trades));
+    updateImageUsage();
+    alert(`${year}年${month}月より前の画像を削除しました`);
+  };
+}
 </script>
 
 </body>
