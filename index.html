@@ -491,7 +491,6 @@ tradeImage.addEventListener('change', () => {
    エントリー判定
 ========================================================= */
 function judge() {
-  if (editingTradeId) return;
   const h1Base = [...document.querySelectorAll('.h1')]
     .filter(c => !c.classList.contains('h1-normal') && !c.classList.contains('h1-long'))
     .every(c => c.checked);
@@ -671,10 +670,9 @@ if (editingTradeId) {
   alert('保存しました');
  editingTradeId = null;
 
-// onchange を完全復活
 document
-  .querySelectorAll('input, select, textarea')
-  .forEach(el => el.onchange = judge);
+  .querySelectorAll('#check input[type=checkbox], #check input[type=radio]')
+  .forEach(i => i.onchange = judge);
 
 document.querySelector('button.primary').textContent = '保存';
 
@@ -1227,7 +1225,7 @@ function deleteImagesBeforeMonth(year, month) {
     const cursor = e.target.result;
     if (!cursor) return;
 
-    const ts = Number(cursor.key.split('_')[1]);
+    const ts = Number(String(cursor.key).split('_')[1]);
     if (ts < borderTime) {
       const id = cursor.key;
       store.delete(id);
