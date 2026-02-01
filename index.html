@@ -227,6 +227,7 @@
     <button id="tab-check" class="active">🧠 チェック</button>
     <button id="tab-calendar">📅 カレンダー</button>
     <button id="tab-stats">📊 集計</button>
+    <button id="tab-lot">🧮 ロット計算</button>
   </nav>
 
   <main>
@@ -329,6 +330,24 @@
     <section id="stats" class="card" style="display: none">
       <div id="statsContent"></div>
     </section>
+
+    <!-- ===============================
+     LOT CALC TAB
+    =============================== -->
+    <section id="lot" class="card" style="display:none">
+      <h3>ロット計算</h3>
+
+      <input type="number" id="margin" placeholder="証拠金（円）">
+      <input type="number" id="riskPercent" placeholder="損失許容率（%）">
+      <input type="number" id="stopPips" placeholder="損切幅（pips）">
+
+      <div class="result-box allow" id="lotResult">
+        ロット：-
+      </div>
+
+      <button class="primary" onclick="calcLot()">計算する</button>
+    </section>
+
   </main>
 
 <script>
@@ -640,7 +659,7 @@ result.addEventListener('change', () => {
    タブ切り替え
 ========================================================= */
 function switchTab(tabId) {
-  ['check', 'calendar', 'stats'].forEach((id) => {
+  ['check', 'calendar', 'stats', 'lot'].forEach((id) => {
     document.getElementById(id).style.display = 'none';
   });
 
@@ -654,6 +673,7 @@ function switchTab(tabId) {
     check: 'tab-check',
     calendar: 'tab-calendar',
     stats: 'tab-stats',
+    lot: 'tab-lot',
   };
 
   document.getElementById(map[tabId]).classList.add('active');
@@ -671,7 +691,7 @@ function switchTab(tabId) {
 document.getElementById('tab-check').onclick    = () => switchTab('check');
 document.getElementById('tab-calendar').onclick = () => switchTab('calendar');
 document.getElementById('tab-stats').onclick    = () => switchTab('stats');
-
+document.getElementById('tab-lot').onclick = () => switchTab('lot');
 
 /* =========================================================
    集計
@@ -825,6 +845,30 @@ function deleteImagesBeforeMonth(year, month) {
     updateImageUsage();
     alert(`${year}年${month}月より前の画像を削除しました`);
   };
+}
+function calcLot() {
+  const margin = Number(document.getElementById('margin').value);
+  const riskPercent = Number(document.getElementById('riskPercent').value);
+  const stopPips = Number(document.getElementById('stopPips').value);
+
+  if (!margin || !riskPercent || !stopPips) {
+    alert('すべて入力してください');
+    return;
+  }
+
+  const riskAmount = margin * (riskPercent / 100);
+
+  // USDJPY：1lot = 1000円 / pips
+  const lot = riskAmount / (stopPips * 1000);
+
+  if (lot <= 0 || lot > 10) {
+    alert('ロットが不正です。入力値を確認してください');
+    return;
+  }
+  
+  document.getElementById('lotResult').textContent =
+    `ロット：${lot.toFixed(2)} lot`;
+  lotEl.value = lot.toFixed(2);
 }
 </script>
 
