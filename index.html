@@ -277,6 +277,10 @@ function judge(){
 }
 
 function saveTrade(){
+    if(!date.value){
+    alert('日付を入力してください');
+    return;
+  }
   const lot = Number(lotEl.value);
   const amt = Number(amountEl.value);
   const pips = amt / (lot * 1000);
@@ -409,10 +413,12 @@ function renderStats(){
   // 月ごとにグループ化
   const monthly = {};
   trades.forEach(t=>{
-    const key = t.date.slice(0,7); // YYYY-MM
-    if(!monthly[key]) monthly[key]=[];
-    monthly[key].push(t);
-  });
+  if(!t.date || t.date.length < 7) return; // ★ 不正データ除外
+
+  const key = t.date.slice(0,7); // YYYY-MM
+  if(!monthly[key]) monthly[key] = [];
+  monthly[key].push(t);
+});
 
   box.innerHTML = Object.entries(monthly).map(([month,list])=>{
     const wins = list.filter(t=>t.amount>0);
