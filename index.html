@@ -206,7 +206,10 @@ button.primary{
 <input type="number" id="amount" placeholder="損益（円）">
 <input type="number" id="pips" placeholder="pips（自動）" disabled>
 <textarea id="comment" placeholder="コメント"></textarea>
+<input type="file" id="tradeImage" accept="image/*">
+<img id="previewImage" style="display:none;max-width:100%;border-radius:8px;margin-bottom:10px">
 
+  
 <button class="primary" onclick="saveTrade()">保存</button>
 </section>
 
@@ -238,9 +241,27 @@ const lotEl=document.getElementById('lot');
 const amountEl=document.getElementById('amount');
 const pipsEl=document.getElementById('pips');
 const comment=document.getElementById('comment');
-
+const tradeImage = document.getElementById('tradeImage');
+const previewImage = document.getElementById('previewImage');
+  
 document.querySelectorAll('input').forEach(i=>i.onchange=judge);
 
+let imageData = null;
+
+tradeImage.addEventListener('change',()=>{
+  const file = tradeImage.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e=>{
+    imageData = e.target.result;
+    previewImage.src = imageData;
+    previewImage.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+  
 function judge(){
   const h1=[...document.querySelectorAll('.h1')].every(c=>c.checked);
   const h4=[...document.querySelectorAll('.h4')].every(c=>c.checked);
@@ -261,16 +282,21 @@ function saveTrade(){
   const pips=amt/(lot*1000);
   pipsEl.value=pips.toFixed(1);
 
-  trades.push({
-    date:date.value,
-    time:time.value,
-    side:side.value,
-    result:result.value,
-    lot,
-    amount:amt,
-    pips,
-    comment:comment.value
-  });
+trades.push({
+  date:date.value,
+  time:time.value,
+  side:side.value,
+  result:result.value,
+  lot,
+  amount:amt,
+  pips,
+  comment:comment.value,
+  image: imageData // ★追加
+  tradeImage.value = '';
+　previewImage.style.display = 'none';
+　imageData = null;
+});
+
   localStorage.setItem('trades',JSON.stringify(trades));
   alert('保存しました');
 }
@@ -315,6 +341,7 @@ function showDayDetail(date){
     list.map((t,i)=>`
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span>${t.time} ${t.side} ${t.amount}</span>
+　　　　　${t.image ? `<img src="${t.image}" style="width:100px;border-radius:6px;cursor:pointer" onclick="openImage('${t.image}')">` : ''}
         <button onclick="deleteTrade(${i},'${date}')">削除</button>
       </div>
     `).join('');
@@ -417,6 +444,11 @@ function renderStats(){
       </div>
     `;
   }).join('');
+}
+
+function openImage(src){
+  const w = window.open();
+  w.document.write(`<img src="${src}" style="max-width:100%">`);
 }
 
 </script>
