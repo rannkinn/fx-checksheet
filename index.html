@@ -671,6 +671,22 @@ if (editingTradeId) {
   alert('保存しました');
   editingTradeId = null;
   document.querySelector('button.primary').textContent = '保存';
+
+// ★ 編集完了後、判定を復活
+document
+  .querySelectorAll('input[type=checkbox], input[type=radio]')
+  .forEach(i => i.onchange = judge);
+
+  // 編集モード解除
+editingTradeId = null;
+
+// onchange を復活
+document
+  .querySelectorAll('input, select, textarea')
+  .forEach(el => el.onchange = judge);
+
+document.querySelector('button.primary').textContent = '保存';
+
 }
 
 
@@ -776,9 +792,8 @@ function showDayDetail(date) {
   : ''
 }
 
-<button type="button" onclick="editTrade('${t.id}')">編集</button>
-<button type="button" onclick="deleteTrade('${t.id}')">削除</button>
-
+<button type="button" class="edit-btn" data-id="${t.id}">編集</button>
+<button type="button" class="delete-btn" data-id="${t.id}">削除</button>
 
 
           </span>
@@ -795,7 +810,12 @@ function showDayDetail(date) {
 
   editingTradeId = id;
 
-  // フォームに反映
+  // ★ 全 input / select / textarea を完全停止
+  document
+    .querySelectorAll('input, select, textarea')
+    .forEach(el => el.onchange = null);
+
+  // フォーム反映
   date.value = t.date;
   time.value = t.time;
   side.value = t.side;
@@ -811,6 +831,8 @@ function showDayDetail(date) {
 
   document.querySelector('button.primary').textContent = '更新';
 }
+
+
 
 /* =========================================================
    トレード削除
