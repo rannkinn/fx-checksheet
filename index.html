@@ -412,7 +412,6 @@
 ========================================================= */
 let imgDB;
 let imgDBReady = false;
-let editingTradeId = null;
   
 const dbReq = indexedDB.open('tradeImageDB', 1);
 
@@ -491,8 +490,6 @@ tradeImage.addEventListener('change', () => {
    エントリー判定
 ========================================================= */
 function judge() {
-  if (editingTradeId) return;
-
   const h1Base = [...document.querySelectorAll('.h1')]
     .filter(c => !c.classList.contains('h1-normal') && !c.classList.contains('h1-long'))
     .every(c => c.checked);
@@ -636,7 +633,7 @@ async function saveTrade() {
   }
 
  const tradeData = {
-  id: editingTradeId || ('trade_' + Date.now()),
+  id: 'trade_' + Date.now(),
   date: date.value,
   time: time.value,
   side: side.value,
@@ -647,21 +644,10 @@ async function saveTrade() {
   pips,
   comment: comment.value,
   exitReason: exitReasonEl.value,
-  imageId: imageId ?? trades.find(t => t.id === editingTradeId)?.imageId ?? null
+  imageId: imageId
 };
 
-if (editingTradeId) {
-  // ===== 編集保存 =====
-  const index = trades.findIndex(t => t.id === editingTradeId);
-  if (index !== -1) {
-    trades[index] = tradeData;
-  }
-  editingTradeId = null; // 編集モード解除
-} else {
-  // ===== 新規保存 =====
-  trades.push(tradeData);
-}
-
+trades.push(tradeData);
 
   localStorage.setItem('trades', JSON.stringify(trades));
 
@@ -675,8 +661,6 @@ if (editingTradeId) {
 document
   .querySelectorAll('#check input[type=checkbox], #check input[type=radio]')
   .forEach(i => i.onchange = judge);
-
-document.querySelector('button.primary').textContent = '保存';
 
 
 }
@@ -784,9 +768,6 @@ function showDayDetail(date) {
   : ''
 }
 
-<button type="button" onclick="editTrade('${t.id}')">
-  編集
-</button>
 <button type="button" onclick="deleteTrade('${t.id}')">
   削除
 </button>
@@ -799,36 +780,7 @@ function showDayDetail(date) {
 
 }
 
-  function editTrade(id) {
-  const t = trades.find(tr => tr.id === id);
-  if (!t) return;
-
-  editingTradeId = id;
-
-  // ★ 全 input / select / textarea を完全停止
-  document
-    .querySelectorAll('input, select, textarea')
-    .forEach(el => el.onchange = null);
-
-  // フォーム反映
-  date.value = t.date;
-  time.value = t.time;
-  side.value = t.side;
-  result.value = t.result;
-  entryTypeEl.value = t.entryType;
-  lotEl.value = t.lot;
-  amountEl.value = t.amount;
-  pipsEl.value = t.pips;
-  comment.value = t.comment;
-  exitReasonEl.value = t.exitReason;
-
-  updateTradeVisual();
-
-  document.querySelector('button.primary').textContent = '更新';
-}
-
-
-
+  
 /* =========================================================
    トレード削除
 ========================================================= */
