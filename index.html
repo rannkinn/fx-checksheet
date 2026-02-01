@@ -217,6 +217,14 @@
       color: var(--lose);
       font-weight: 700;
     }
+
+ /* ===== 執行足エリア 無効表示 ===== */
+.exe-disabled {
+  opacity: 0.35;
+  pointer-events: none; /* クリック不可 */
+  filter: grayscale(60%);
+}
+
   </style>
 </head>
 
@@ -257,9 +265,13 @@
       <label><input type="checkbox" class="h4" /><span>強い否定ヒゲなし</span></label>
       <label><input type="checkbox" class="h4" /><span>ボリバン形状が1Hと整合</span></label>
 
-      <h3>ステップ③【執行足判定】</h3>
-      <label><input type="radio" name="exe" value="15" /><span>15分も初動で良い</span></label>
-      <label><input type="radio" name="exe" value="60" /><span>15分が微妙 → 1時間執行</span></label>
+<h3>ステップ③【執行足判定】</h3>
+
+<div id="exeArea">
+  <label><input type="radio" name="exe" value="15" /><span>15分も初動で良い</span></label>
+  <label><input type="radio" name="exe" value="60" /><span>15分が微妙 → 1時間執行</span></label>
+</div>
+
 
       <div id="finalResult" class="result-box">未判定</div>
 
@@ -455,40 +467,57 @@ function judge() {
   const exe = document.querySelector('input[name="exe"]:checked');
   const box = document.getElementById('finalResult');
 
-  // --- 1時間足NG ---
-  if (!h1Base) {
-    box.textContent = '❌ 見送り：1時間足の基本条件未達';
-    box.className = 'result-box deny';
-    entryTypeEl.value = '';
-    return;
-  }
+// --- 1時間足NG ---
+if (!h1Base) {
+  document
+    .querySelectorAll('input[name="exe"]')
+    .forEach(r => r.disabled = false);
 
-  // --- 伸びきり ---
-  if (!h1Normal && !h1Long) {
-    box.textContent = '❌ 見送り：1時間足が伸びきっている';
-    box.className = 'result-box deny';
-    entryTypeEl.value = '';
-    return;
-  }
+  document.getElementById('exeArea').classList.remove('exe-disabled');
 
-  // --- 4時間否定 ---
-  if (!h4) {
-    box.textContent = '❌ 見送り：4時間足が否定';
-    box.className = 'result-box deny';
-    entryTypeEl.value = '';
-    return;
-  }
+  box.textContent = '❌ 見送り：1時間足の基本条件未達';
+  box.className = 'result-box deny';
+  entryTypeEl.value = '';
+  return;
+}
+
+// --- 伸びきり ---
+if (!h1Normal && !h1Long) {
+  document.getElementById('exeArea').classList.remove('exe-disabled');
+
+  box.textContent = '❌ 見送り：1時間足が伸びきっている';
+  box.className = 'result-box deny';
+  entryTypeEl.value = '';
+  return;
+}
+
+// --- 4時間否定 ---
+if (!h4) {
+  document
+    .querySelectorAll('input[name="exe"]')
+    .forEach(r => r.disabled = false);
+
+  document.getElementById('exeArea').classList.remove('exe-disabled');
+
+  box.textContent = '❌ 見送り：4時間足が否定';
+  box.className = 'result-box deny';
+  entryTypeEl.value = '';
+  return;
+}
 
 // ===== Bパターン（執行足は1時間固定）=====
 if (h1Long) {
   entryTypeEl.value = 'limit';
 
- document
+  document
     .querySelectorAll('input[name="exe"]')
     .forEach(r => {
       r.checked = false;  
       r.disabled = true;
     });
+
+  // ★ これを追加 ★
+  document.getElementById('exeArea').classList.add('exe-disabled');
 
   box.textContent =
     '🟡 Bパターン｜1時間足 指値（戻し待ち）';
@@ -514,7 +543,7 @@ entryTypeEl.value = 'market';
 const exeLabel = exe.value === '60' ? '1時間足' : '15分足';
 
 box.textContent =
-  `✅ Aパターン｜成行エントリー｜執行足：${exeLabel}`;
+  `✅ Aパターン｜成行｜執行足：${exeLabel}`;
 box.className = 'result-box allow';
 }
 
