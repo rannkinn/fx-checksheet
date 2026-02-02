@@ -134,6 +134,7 @@
       border: none;
       background: #121533;
       color: var(--text);
+      font-size: 16px;
     }
 
     textarea {
@@ -598,6 +599,8 @@ function saveImageToDB(blob) {
    トレード保存
 ========================================================= */
 async function saveTrade() {
+  blurActiveElement();
+  
   if (!imgDB) {
     alert('画像DBの準備中です。少し待ってください');
     return;
@@ -656,8 +659,9 @@ trades.push(tradeData);
   imageData = null;
 
   alert('保存しました');
- editingTradeId = null;
-
+  editingTradeId = null;
+  blurActiveElement();
+  
 document
   .querySelectorAll('#check input[type=checkbox], #check input[type=radio]')
   .forEach(i => i.onchange = judge);
@@ -1334,7 +1338,17 @@ function drawEquityChart(trades) {
   ctx.stroke();
 }
 
+function blurActiveElement() {
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
+}
 
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('change', () => {
+    el.blur();
+  });
+});
 
 </script>
 <!-- ===============================
