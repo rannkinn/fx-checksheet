@@ -789,11 +789,17 @@ function showDayDetail(date) {
    トレード削除
 ========================================================= */
 function deleteTrade(id) {
+  // ★ 追加：誤削除防止
+  if (!confirm('このトレードを削除しますか？\nこの操作は元に戻せません。')) {
+    return;
+  }
+
   const i = trades.findIndex(t => t.id === id);
   if (i === -1) return;
 
   const trade = trades[i];
 
+  // 画像も一緒に削除
   if (trade.imageId) {
     const tx = imgDB.transaction('images', 'readwrite');
     tx.objectStore('images').delete(trade.imageId);
